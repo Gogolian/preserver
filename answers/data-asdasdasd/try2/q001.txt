@@ -1,4 +1,0 @@
-<USER>
-What is your favourite color?
-<ANSWER>
-asdasd

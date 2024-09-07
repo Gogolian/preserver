@@ -5,6 +5,11 @@ import difflib
 QUESTIONS_DIR = "questions"
 ANSWERS_DIR_TEMPLATE = "answers/data-{}"
 
+hello_text = """Hello,
+Perserve will help you save some info about yourself to be used in whatever manner you'd like.
+All your data is soley yours, we do not keep it.
+What's your username (this will be used to create new folder)?"""
+
 def get_next_question(username):
     for root, _, files in os.walk(QUESTIONS_DIR):
         for file in files:
@@ -33,7 +38,7 @@ def save_answer(username, question, answer):
 
 def chat(message, history, username):
     if not history:
-        return [["What's your name?", None]], "", username
+        return [[hello_text, None]], "", username
 
     if len(history) == 1:
         username = message
@@ -59,18 +64,17 @@ def chat(message, history, username):
     return history, "", username
 
 def initial_message():
-    return [["What's your name?", None]]
+    return [[hello_text, None]]
 
-head = """
-        <script>
-        function addChatScroll () {
-    var chatbot = document.querySelector('#chatbot .bubble-wrap');
+head = '''<script>
+function addChatScroll () {
+    var chatbot = document?.querySelector('#chatbot .bubble-wrap');
     if (chatbot) {
         console.log(chatbot);
         function scrollChatToBottom() {
             console.log('scroll');
             chatbot.scrollTop = chatbot.scrollHeight;
-        }
+        };
         new MutationObserver(scrollChatToBottom).observe(
             chatbot,
             { attributes: true, childList: true, subtree: true }
@@ -78,14 +82,18 @@ head = """
     } else {
         console.log('retrying');
         setTimeout(addChatScroll, 1000);
-    }
+    };
+};
+addChatScroll();
+</script>
+<style>
+#chatbot{
+    height: calc( 100vh - 236px) !important;
 }
+</style>
+'''
 
-document.addEventListener('DOMContentLoaded', addChatScroll)
-        </script>
-    """
-
-with gr.Blocks(css="#chatbot .overflow-y-auto{height:500px}", head=head) as app:
+with gr.Blocks(css="#chatbot .overflow-y-auto{height:calc( 100vh - 236px)}", head=head) as app:
     username = gr.State("")
     chatbot = gr.Chatbot(elem_id="chatbot", value=initial_message())
     msg = gr.Textbox()

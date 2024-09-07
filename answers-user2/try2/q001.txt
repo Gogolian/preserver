@@ -1,0 +1,4 @@
+<USER>
+What is your favourite color?
+<ANSWER>
+2

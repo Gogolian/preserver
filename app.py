@@ -37,8 +37,13 @@ def chat(message, history, username):
 
     if len(history) == 1:
         username = message
-        greeting = f"Hello {username}, let's preserve your knowledge"
-        return history + [[message, None], [greeting, None], [get_next_question(username), None]], "", username
+        next_question = get_next_question(username)
+        if next_question:
+            greeting = f"Hello {username}, let's preserve your knowledge"
+            return history + [[message, None], [greeting, None], [next_question, None]], "", username
+        else:
+            completed_message = f"Hello {username}, you've already answered all of the questions available for now. Thank you, your knowledge is preserved"
+            return history + [[message, None], [completed_message, None]], "", username
 
     if message:
         save_answer(username, history[-1][0], message)

@@ -61,9 +61,14 @@ Please read our [CONTRIBUTING.md](CONTRIBUTING.md) for details on our code of co
 
 ## Future Plans
 
+- Script to agregate answers into a single file per user
+- Pure html/js version to run locally without python
+- Add voice input
+- Multilingual support
 - Integration with popular LLM training frameworks
 - Mobile app for on-the-go data collection
 - Improved data visualization and management tools
+- ???
 
 ## Disclaimer
 

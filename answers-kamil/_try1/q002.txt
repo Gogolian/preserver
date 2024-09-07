@@ -1,0 +1,4 @@
+<USER>
+What is answer to the universe?
+<ANSWER>
+42

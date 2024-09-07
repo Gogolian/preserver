@@ -33,20 +33,16 @@ def save_answer(username, question, answer):
 
 def chat(message, history, username):
     if not history:
-        # This is the first interaction, so we ask for the username
-        return [["What's your name?", None]], ""
-    
+        return [["What's your name?", None]], "", username
+
     if len(history) == 1:
-        # This is the second interaction, where we get the username
         username = message
-        greeting = f"Hello {message}, let's preserve your knowledge"
-        return history + [[message, None], [greeting, None], [get_next_question(message), None]], ""
-    
+        greeting = f"Hello {username}, let's preserve your knowledge"
+        return history + [[message, None], [greeting, None], [get_next_question(username), None]], "", username
+
     if message:
-        # Save the user's answer
         save_answer(username, history[-1][0], message)
         
-        # Get the next question
         question = get_next_question(username)
         if question:
             history.append([message, None])
@@ -55,7 +51,7 @@ def chat(message, history, username):
             history.append([message, None])
             history.append(["No more questions. Thank you for your participation!", None])
     
-    return history, ""
+    return history, "", username
 
 def initial_message():
     return [["What's your name?", None]]
@@ -66,7 +62,7 @@ with gr.Blocks() as app:
     msg = gr.Textbox()
     clear = gr.Button("Clear")
 
-    msg.submit(chat, inputs=[msg, chatbot, username], outputs=[chatbot, msg])
+    msg.submit(chat, inputs=[msg, chatbot, username], outputs=[chatbot, msg, username])
     clear.click(lambda: None, None, chatbot, queue=False)
 
 app.launch()

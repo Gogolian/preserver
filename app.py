@@ -3,7 +3,7 @@ import os
 import difflib
 
 QUESTIONS_DIR = "questions"
-ANSWERS_DIR_TEMPLATE = "answers-{}"
+ANSWERS_DIR_TEMPLATE = "answers/data-{}"
 
 def get_next_question(username):
     for root, _, files in os.walk(QUESTIONS_DIR):
@@ -61,13 +61,41 @@ def chat(message, history, username):
 def initial_message():
     return [["What's your name?", None]]
 
-with gr.Blocks() as app:
+head = """
+        <script>
+        function addChatScroll () {
+    var chatbot = document.querySelector('#chatbot .bubble-wrap');
+    if (chatbot) {
+        console.log(chatbot);
+        function scrollChatToBottom() {
+            console.log('scroll');
+            chatbot.scrollTop = chatbot.scrollHeight;
+        }
+        new MutationObserver(scrollChatToBottom).observe(
+            chatbot,
+            { attributes: true, childList: true, subtree: true }
+        );
+    } else {
+        console.log('retrying');
+        setTimeout(addChatScroll, 1000);
+    }
+}
+
+document.addEventListener('DOMContentLoaded', addChatScroll)
+        </script>
+    """
+
+with gr.Blocks(css="#chatbot .overflow-y-auto{height:500px}", head=head) as app:
     username = gr.State("")
-    chatbot = gr.Chatbot(value=initial_message())
+    chatbot = gr.Chatbot(elem_id="chatbot", value=initial_message())
     msg = gr.Textbox()
-    clear = gr.Button("Clear")
+    clear = gr.Button("Start over")
 
     msg.submit(chat, inputs=[msg, chatbot, username], outputs=[chatbot, msg, username])
-    clear.click(lambda: None, None, chatbot, queue=False)
+    
+    def reset_conversation():
+        return initial_message(), "", ""
+
+    clear.click(reset_conversation, outputs=[chatbot, msg, username])
 
 app.launch()

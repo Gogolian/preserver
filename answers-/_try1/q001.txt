@@ -1,4 +1,0 @@
-<USER>
-Tell me anything you want about you.
-<ANSWER>
-kdkdkdk

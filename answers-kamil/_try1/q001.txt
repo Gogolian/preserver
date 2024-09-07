@@ -1,0 +1,4 @@
+<USER>
+Tell me anything you want about you.
+<ANSWER>
+I am coding with AI and its fuuuuuun!

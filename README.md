@@ -82,7 +82,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## Funding
 
-[funding.json](./.well-known/funding-manifest-urls/funding.json)
+[funding.json](misc/funding.json)
 ---
 
 Built with ❤️ by Gogolian and the open-source community.

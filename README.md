@@ -80,6 +80,9 @@ Preserver is an experimental project in its early stages. The author and contrib
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
+## Funding
+
+[funding.json](./.well-known/funding-manifest-urls/funding.json)
 ---
 
 Built with ❤️ by Gogolian and the open-source community.

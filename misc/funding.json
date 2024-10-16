@@ -9,7 +9,7 @@
         "description": "People come and go too early. First, we've had written notes of those who passed. Then we've had books, voice recordings, photos and videos. But this is still not the end of the road. What if we could perserve more, like an essence of a person. The way they ask and answer questions, their personality. My dad passed away due to suicide. I miss him every day. I hope that one day i can leave my kids an USB stick with the best approximation of their dad that's possible, maybe even a digital copy of a person. Open source is crucial here to ensure that the data is uncorrupted in any way.",
         "webpageUrl": {
             "url": "https://gogolian.github.io/preserver",
-            "wellKnown": "https://github.com/Gogolian/preserver/tree/main/.well-known/funding-manifest-urls"
+            "wellKnown": ""
         }
     },
     "projects": [{

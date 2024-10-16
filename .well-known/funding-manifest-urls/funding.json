@@ -19,8 +19,7 @@
             "url": "https://gogolian.github.io/preserver"
         },
         "repositoryUrl": {
-            "url": "https://github.com/Gogolian/preserver",
-            "wellKnown": "https://github.com/Gogolian/preserver/tree/main/.well-known/funding-manifest-urls"
+            "url": "https://github.com/Gogolian/preserver"
         },
         "licenses": ["spdx:MIT"],
         "tags": ["database", "self-hosted", "digital-cone", "digital-diary", "human-cognition-preservation"]

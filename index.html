@@ -1,0 +1,1112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Preserver - Your Personal Digital Twin Creator</title>
+    <style>
+        :root {
+            --primary: #667eea;
+            --primary-dark: #5a67d8;
+            --secondary: #764ba2;
+            --success: #48bb78;
+            --warning: #ed8936;
+            --bg: #f7fafc;
+            --card: #ffffff;
+            --text: #2d3748;
+            --text-muted: #718096;
+            --border: #e2e8f0;
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        header {
+            text-align: center;
+            padding: 40px 20px;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            color: white;
+            margin-bottom: 30px;
+            border-radius: 0 0 20px 20px;
+        }
+
+        header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        header p {
+            opacity: 0.9;
+            font-size: 1.1em;
+        }
+
+        .card {
+            background: var(--card);
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 20px;
+            box-shadow: var(--shadow);
+        }
+
+        .welcome-card {
+            text-align: center;
+        }
+
+        .welcome-card h2 {
+            margin-bottom: 20px;
+            color: var(--primary);
+        }
+
+        .welcome-card ul {
+            text-align: left;
+            margin: 20px auto;
+            max-width: 400px;
+            padding-left: 30px;
+        }
+
+        .welcome-card li {
+            margin-bottom: 10px;
+        }
+
+        .input-group {
+            display: flex;
+            gap: 10px;
+            max-width: 400px;
+            margin: 20px auto;
+        }
+
+        input[type="text"], textarea {
+            flex: 1;
+            padding: 12px 16px;
+            border: 2px solid var(--border);
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.2s;
+        }
+
+        input[type="text"]:focus, textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        textarea {
+            width: 100%;
+            min-height: 120px;
+            resize: vertical;
+        }
+
+        button {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-secondary {
+            background: var(--border);
+            color: var(--text);
+        }
+
+        .btn-secondary:hover {
+            background: #cbd5e0;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        .progress-bar {
+            background: var(--border);
+            border-radius: 10px;
+            height: 20px;
+            overflow: hidden;
+            margin-bottom: 10px;
+        }
+
+        .progress-fill {
+            background: linear-gradient(90deg, var(--success), #38a169);
+            height: 100%;
+            transition: width 0.5s ease;
+        }
+
+        .progress-text {
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 14px;
+        }
+
+        .question-card {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            color: white;
+            border-radius: 12px;
+            padding: 30px;
+            margin-bottom: 20px;
+        }
+
+        .question-category {
+            font-size: 14px;
+            opacity: 0.8;
+            margin-bottom: 15px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .question-text {
+            font-size: 1.3em;
+            line-height: 1.5;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin-top: 20px;
+        }
+
+        .tabs {
+            display: flex;
+            border-bottom: 2px solid var(--border);
+            margin-bottom: 20px;
+        }
+
+        .tab {
+            padding: 12px 24px;
+            border: none;
+            background: none;
+            color: var(--text-muted);
+            font-size: 16px;
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+            margin-bottom: -2px;
+            transition: all 0.2s;
+        }
+
+        .tab.active {
+            color: var(--primary);
+            border-bottom-color: var(--primary);
+        }
+
+        .tab:hover {
+            color: var(--primary);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .category-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .category-item {
+            padding: 12px 16px;
+            background: var(--bg);
+            border-radius: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .category-name {
+            font-weight: 500;
+        }
+
+        .category-progress {
+            color: var(--text-muted);
+            font-size: 14px;
+        }
+
+        .category-complete {
+            color: var(--success);
+        }
+
+        select {
+            padding: 10px 16px;
+            border: 2px solid var(--border);
+            border-radius: 8px;
+            font-size: 16px;
+            background: white;
+            cursor: pointer;
+            min-width: 200px;
+        }
+
+        .filter-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .user-badge {
+            background: var(--primary);
+            color: white;
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-size: 14px;
+        }
+
+        .export-options {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .export-option {
+            padding: 20px;
+            border: 2px solid var(--border);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .export-option:hover {
+            border-color: var(--primary);
+            background: #f0f4ff;
+        }
+
+        .export-option.selected {
+            border-color: var(--primary);
+            background: #f0f4ff;
+        }
+
+        .export-option h3 {
+            margin-bottom: 5px;
+            color: var(--primary);
+        }
+
+        .export-option p {
+            color: var(--text-muted);
+            font-size: 14px;
+        }
+
+        .notification {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            padding: 16px 24px;
+            background: var(--success);
+            color: white;
+            border-radius: 8px;
+            box-shadow: var(--shadow);
+            animation: slideIn 0.3s ease;
+            z-index: 1000;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        .complete-card {
+            text-align: center;
+            padding: 40px;
+        }
+
+        .complete-card h2 {
+            color: var(--success);
+            margin-bottom: 15px;
+        }
+
+        .complete-card .emoji {
+            font-size: 64px;
+            margin-bottom: 20px;
+        }
+
+        footer {
+            text-align: center;
+            padding: 30px;
+            color: var(--text-muted);
+            margin-top: 40px;
+        }
+
+        footer a {
+            color: var(--primary);
+            text-decoration: none;
+        }
+
+        @media (max-width: 600px) {
+            header h1 {
+                font-size: 1.8em;
+            }
+
+            .input-group {
+                flex-direction: column;
+            }
+
+            .button-group {
+                flex-direction: column;
+            }
+
+            .filter-row {
+                flex-direction: column;
+                align-items: stretch;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>🧠 Preserver</h1>
+        <p>Create your digital twin by preserving your thoughts, memories, and personality</p>
+    </header>
+
+    <div class="container">
+        <!-- Welcome Screen -->
+        <div id="welcome-screen">
+            <div class="card welcome-card">
+                <h2>Welcome to Preserver</h2>
+                <p>Preserver helps you create a digital twin of yourself by gathering your thoughts, memories, preferences, and perspectives.</p>
+                
+                <ul>
+                    <li>🔒 <strong>Privacy-First:</strong> All data stays in your browser</li>
+                    <li>🧠 <strong>Comprehensive:</strong> 990+ thoughtful questions</li>
+                    <li>💾 <strong>LLM-Ready:</strong> Export for AI training</li>
+                    <li>🔄 <strong>Persistent:</strong> Continue anytime</li>
+                </ul>
+
+                <div class="input-group">
+                    <input type="text" id="username-input" placeholder="Enter your username..." />
+                    <button class="btn-primary" onclick="startSession()">🚀 Start</button>
+                </div>
+
+                <p style="color: var(--text-muted); font-size: 14px;">
+                    Your data is stored only in this browser's local storage.
+                </p>
+            </div>
+        </div>
+
+        <!-- Main App Screen -->
+        <div id="main-screen" class="hidden">
+            <div class="filter-row">
+                <span class="user-badge" id="user-badge">👤 User</span>
+                <div>
+                    <select id="category-filter" onchange="filterCategory()">
+                        <option value="">All Categories</option>
+                    </select>
+                    <button class="btn-secondary" onclick="logout()">🔄 Switch User</button>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progress-fill" style="width: 0%"></div>
+                </div>
+                <p class="progress-text" id="progress-text">0 / 0 questions answered (0%)</p>
+            </div>
+
+            <div class="tabs">
+                <button class="tab active" onclick="showTab('questions')">📝 Questions</button>
+                <button class="tab" onclick="showTab('progress')">📊 Progress</button>
+                <button class="tab" onclick="showTab('export')">📤 Export</button>
+            </div>
+
+            <!-- Questions Tab -->
+            <div id="tab-questions" class="tab-content active">
+                <div class="question-card" id="question-card">
+                    <div class="question-category" id="question-category">Category</div>
+                    <div class="question-text" id="question-text">Loading question...</div>
+                </div>
+
+                <div class="card" id="answer-section">
+                    <textarea id="answer-input" placeholder="Share your thoughts..."></textarea>
+                    <div class="button-group">
+                        <button class="btn-primary" onclick="submitAnswer()">💾 Save & Next</button>
+                        <button class="btn-secondary" onclick="skipQuestion()">⏭️ Skip</button>
+                    </div>
+                </div>
+
+                <div class="card complete-card hidden" id="complete-card">
+                    <div class="emoji">🎉</div>
+                    <h2>All Done!</h2>
+                    <p>You've answered all available questions. Amazing work preserving your knowledge!</p>
+                    <button class="btn-primary" onclick="showTab('export')">📤 Export Your Data</button>
+                </div>
+            </div>
+
+            <!-- Progress Tab -->
+            <div id="tab-progress" class="tab-content">
+                <div class="card">
+                    <h3 style="margin-bottom: 15px;">Category Progress</h3>
+                    <div class="category-grid" id="category-grid"></div>
+                </div>
+            </div>
+
+            <!-- Export Tab -->
+            <div id="tab-export" class="tab-content">
+                <div class="card">
+                    <h3 style="margin-bottom: 15px;">Export Your Digital Twin Data</h3>
+                    <p style="color: var(--text-muted); margin-bottom: 20px;">
+                        Download your answers in formats ready for LLM training.
+                    </p>
+
+                    <div class="export-options">
+                        <div class="export-option selected" onclick="selectExport('jsonl')" id="export-jsonl">
+                            <h3>📄 JSONL (Instruction Format)</h3>
+                            <p>Each line is {"instruction", "output"} - great for fine-tuning models</p>
+                        </div>
+                        <div class="export-option" onclick="selectExport('conversation')" id="export-conversation">
+                            <h3>💬 JSONL (Conversation Format)</h3>
+                            <p>Each line has messages array - for chat-based models</p>
+                        </div>
+                        <div class="export-option" onclick="selectExport('json')" id="export-json">
+                            <h3>📦 JSON (Complete Export)</h3>
+                            <p>Full structured export with all metadata</p>
+                        </div>
+                    </div>
+
+                    <div class="button-group" style="margin-top: 30px;">
+                        <button class="btn-primary" onclick="exportData()">📥 Download Export</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <p>
+            Built with ❤️ by <a href="https://github.com/Gogolian" target="_blank">Gogolian</a> and the open-source community.
+        </p>
+        <p style="margin-top: 10px;">
+            <a href="https://github.com/Gogolian/preserver" target="_blank">GitHub</a> · 
+            MIT License · 
+            Your data, your twin, your future!
+        </p>
+    </footer>
+
+    <script>
+        // Questions database (will be loaded from embedded data)
+        let questions = {};
+        let currentUser = null;
+        let currentQuestion = null;
+        let currentCategory = null;
+        let currentQid = null;
+        let selectedExport = 'jsonl';
+
+        // Storage keys
+        const STORAGE_KEY = 'preserver_data';
+        const USER_KEY = 'preserver_user';
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', async () => {
+            await loadQuestions();
+            
+            // Check for existing user
+            const savedUser = localStorage.getItem(USER_KEY);
+            if (savedUser) {
+                document.getElementById('username-input').value = savedUser;
+            }
+
+            // Enter key handlers
+            document.getElementById('username-input').addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') startSession();
+            });
+
+            document.getElementById('answer-input').addEventListener('keypress', (e) => {
+                if (e.key === 'Enter' && e.ctrlKey) submitAnswer();
+            });
+        });
+
+        async function loadQuestions() {
+            // Try to load from questions.json first
+            try {
+                const response = await fetch('questions.json');
+                if (response.ok) {
+                    questions = await response.json();
+                    console.log('Loaded questions from questions.json');
+                    return;
+                }
+            } catch (e) {
+                console.log('Could not load questions.json, using embedded questions');
+            }
+            
+            // Fallback to embedded questions for standalone use
+            questions = {
+                "personal_info": {
+                    "q1": "What is your full name, and does it have any special meaning?",
+                    "q2": "What is your religious affiliation, if any?",
+                    "q3": "What is your political affiliation or general political stance?",
+                    "q4": "Do you have any siblings? If so, what are their ages relative to you?",
+                    "q5": "What is your sexual orientation?",
+                    "q6": "Do you have any pets? If so, what kind?",
+                    "q7": "What is your blood type?",
+                    "q8": "Do you have any allergies or medical conditions?",
+                    "q9": "What is your height and weight?",
+                    "q10": "What is your natural hair color and eye color?",
+                    "q11": "Do you wear glasses or contact lenses?",
+                    "q12": "When and where were you born?",
+                    "q13": "What is your dominant hand?",
+                    "q14": "Do you have any distinguishing features like birthmarks or scars?",
+                    "q15": "What is your zodiac sign?",
+                    "q16": "What generation do you belong to (e.g., Baby Boomer, Millennial, Gen Z)?",
+                    "q17": "What is your Myers-Briggs personality type, if you know it?",
+                    "q18": "What is your blood pressure, if you know it?",
+                    "q19": "Do you have any dietary restrictions or preferences?",
+                    "q20": "What is your shoe size?",
+                    "q21": "Do you have any tattoos or piercings?",
+                    "q22": "What is your current occupation?",
+                    "q23": "What is your current annual income range?",
+                    "q24": "What is your highest level of education?",
+                    "q25": "What languages do you speak?",
+                    "q26": "What is your cultural or ethnic background?",
+                    "q27": "Are you married, single, or in a relationship?",
+                    "q28": "Do you have any children? If so, how many?",
+                    "q29": "Do you have any children? If so, how many and what are their ages?",
+                    "q30": "Where do you currently live, and how long have you been there?"
+                },
+                "childhood": {
+                    "q1": "What's your earliest childhood memory, and why do you think it stuck with you?",
+                    "q2": "Who was your best friend growing up, and what made that friendship special?",
+                    "q3": "What was your favorite toy or game as a child?",
+                    "q4": "Did you have any imaginary friends? If so, describe them.",
+                    "q5": "What was your favorite subject in school and why?",
+                    "q6": "What was the most trouble you ever got into as a child?",
+                    "q7": "What did you want to be when you grew up?",
+                    "q8": "What was your favorite food as a child?",
+                    "q9": "Did you have any fears or phobias as a child?",
+                    "q10": "What was your favorite holiday tradition growing up?"
+                },
+                "goals": {
+                    "q1": "What are your top three long-term life goals?",
+                    "q2": "What do you want to accomplish in the next year?",
+                    "q3": "What legacy do you want to leave behind?",
+                    "q4": "What is your dream job or career path?",
+                    "q5": "Where do you see yourself in 10 years?",
+                    "q6": "What skill would you most like to master?",
+                    "q7": "What place in the world would you most like to visit?",
+                    "q8": "What's one thing you've always wanted to learn?",
+                    "q9": "What achievement are you most proud of?",
+                    "q10": "What goal have you given up on, and why?"
+                },
+                "beliefs": {
+                    "q1": "Do you believe in a higher power or spiritual force? Explain.",
+                    "q2": "What do you believe happens after death?",
+                    "q3": "What is your philosophy on life's purpose?",
+                    "q4": "Do you believe in fate or free will?",
+                    "q5": "What do you think is the key to happiness?",
+                    "q6": "Do you believe people are inherently good or bad?",
+                    "q7": "What moral principles guide your life?",
+                    "q8": "How do you define success?",
+                    "q9": "What do you believe is the meaning of life?",
+                    "q10": "Do you believe in karma or justice in the universe?"
+                },
+                "personality": {
+                    "q1": "How would you describe your personality in three words?",
+                    "q2": "What is your biggest strength?",
+                    "q3": "What is your biggest weakness?",
+                    "q4": "Are you an introvert or extrovert?",
+                    "q5": "How do you handle stress?",
+                    "q6": "What makes you angry?",
+                    "q7": "What brings you the most joy?",
+                    "q8": "How do you react to criticism?",
+                    "q9": "What are you most passionate about?",
+                    "q10": "How would your friends describe you?"
+                },
+                "relationships": {
+                    "q1": "What do you value most in a friendship?",
+                    "q2": "What do you look for in a romantic partner?",
+                    "q3": "What's your love language?",
+                    "q4": "How do you handle conflict in relationships?",
+                    "q5": "Who has had the biggest influence on your life?",
+                    "q6": "What's the best advice you've ever received about relationships?",
+                    "q7": "What's your relationship with your parents like?",
+                    "q8": "Do you prefer many acquaintances or few close friends?",
+                    "q9": "What's the most important lesson you've learned from a relationship?",
+                    "q10": "How do you show love to others?"
+                },
+                "preferences": {
+                    "q1": "What's your favorite book and why?",
+                    "q2": "What's your favorite movie or TV show?",
+                    "q3": "What type of music do you enjoy most?",
+                    "q4": "What's your favorite cuisine?",
+                    "q5": "Do you prefer the city or the countryside?",
+                    "q6": "What's your ideal way to spend a weekend?",
+                    "q7": "Morning person or night owl?",
+                    "q8": "What's your favorite season and why?",
+                    "q9": "Do you prefer coffee or tea?",
+                    "q10": "What's your favorite way to relax?"
+                },
+                "career": {
+                    "q1": "What is your current profession?",
+                    "q2": "What do you like most about your job?",
+                    "q3": "What would you change about your career?",
+                    "q4": "What's your biggest professional achievement?",
+                    "q5": "What skills are most important in your field?",
+                    "q6": "How do you define work-life balance?",
+                    "q7": "What motivates you at work?",
+                    "q8": "Where do you see your career in 5 years?",
+                    "q9": "What's the best career advice you've received?",
+                    "q10": "If money wasn't an issue, what career would you pursue?"
+                },
+                "hobbies": {
+                    "q1": "What hobbies do you currently enjoy?",
+                    "q2": "What hobby would you like to try?",
+                    "q3": "How did you get into your main hobby?",
+                    "q4": "Do you prefer solo or group activities?",
+                    "q5": "What's your favorite creative outlet?",
+                    "q6": "Do you play any sports?",
+                    "q7": "What's your favorite outdoor activity?",
+                    "q8": "Do you collect anything?",
+                    "q9": "What games do you enjoy playing?",
+                    "q10": "How do you spend your free time?"
+                },
+                "memories": {
+                    "q1": "What's your happiest memory?",
+                    "q2": "What's a memory that makes you laugh?",
+                    "q3": "What's a life-changing moment you experienced?",
+                    "q4": "What's your most embarrassing memory?",
+                    "q5": "What's a moment you're most proud of?",
+                    "q6": "What's a memory from a trip that stands out?",
+                    "q7": "What's a memory from your school days?",
+                    "q8": "What's a special memory with a family member?",
+                    "q9": "What's a challenging moment you overcame?",
+                    "q10": "What's a moment that changed your perspective?"
+                },
+                "technology": {
+                    "q1": "What is your relationship with technology? Do you consider yourself tech-savvy?",
+                    "q2": "What was the first computer or smartphone you owned?",
+                    "q3": "How do you feel about artificial intelligence and its role in society?",
+                    "q4": "What technology has had the biggest positive impact on your life?",
+                    "q5": "Are there any technologies you deliberately avoid using? Why?",
+                    "q6": "How do you feel about privacy in the digital age?",
+                    "q7": "What futuristic technology are you most excited about?",
+                    "q8": "Do you prefer physical books or e-readers? Why?",
+                    "q9": "What's your opinion on social media's impact on society?",
+                    "q10": "How many hours per day do you typically spend on screens?"
+                },
+                "spirituality": {
+                    "q1": "Do you consider yourself a spiritual person? What does spirituality mean to you?",
+                    "q2": "Have you ever had a profound spiritual or transcendent experience?",
+                    "q3": "Do you practice meditation, prayer, or any form of contemplation?",
+                    "q4": "What gives your life a sense of meaning and purpose?",
+                    "q5": "How do you connect with something larger than yourself?",
+                    "q6": "What role does nature play in your spiritual or emotional life?",
+                    "q7": "Do you believe in an afterlife? What do you imagine it might be like?",
+                    "q8": "What book, teaching, or philosophy has most influenced your spiritual views?",
+                    "q9": "How do you find inner peace during difficult times?",
+                    "q10": "What rituals or practices are meaningful to you?"
+                },
+                "life_philosophy": {
+                    "q1": "What is your personal definition of a life well-lived?",
+                    "q2": "What do you believe is the greatest gift you can give to others?",
+                    "q3": "How do you approach making difficult decisions?",
+                    "q4": "What role does suffering play in personal growth?",
+                    "q5": "What do you believe is more important: the journey or the destination?",
+                    "q6": "How do you define success versus happiness?",
+                    "q7": "What wisdom would you share with your younger self?",
+                    "q8": "How do you balance personal desires with responsibilities to others?",
+                    "q9": "What do you think is the relationship between freedom and responsibility?",
+                    "q10": "What life lesson took you the longest to learn?"
+                },
+                "opinions": {
+                    "q1": "What's an unpopular opinion you hold that you're willing to defend?",
+                    "q2": "What current social issue do you feel most strongly about?",
+                    "q3": "What do you think about the state of education today?",
+                    "q4": "How do you feel about the healthcare system in your country?",
+                    "q5": "What's your stance on work-life balance in modern society?",
+                    "q6": "What do you think about the current state of journalism and media?",
+                    "q7": "How do you feel about globalization?",
+                    "q8": "What's your opinion on the role of government in people's lives?",
+                    "q9": "How do you feel about the pace of technological change?",
+                    "q10": "What do you think society gets wrong about success?"
+                },
+                "social_media": {
+                    "q1": "What social media platforms do you use regularly?",
+                    "q2": "How do you present yourself online versus in real life?",
+                    "q3": "What kind of content do you typically share on social media?",
+                    "q4": "How do you feel after spending time on social media?",
+                    "q5": "Have you ever taken a break from social media? What was that like?",
+                    "q6": "What's the most meaningful connection you've made through social media?",
+                    "q7": "How do you handle negative comments or online conflict?",
+                    "q8": "Do you compare yourself to others on social media? How does it affect you?",
+                    "q9": "What boundaries do you set around your social media use?",
+                    "q10": "How has social media changed your relationships?"
+                }
+            };
+        }
+
+        function getStorageData() {
+            try {
+                const data = localStorage.getItem(STORAGE_KEY);
+                return data ? JSON.parse(data) : {};
+            } catch {
+                return {};
+            }
+        }
+
+        function saveStorageData(data) {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+        }
+
+        function getUserAnswers() {
+            const data = getStorageData();
+            return data[currentUser] || {};
+        }
+
+        function saveAnswer(category, qid, question, answer) {
+            const data = getStorageData();
+            if (!data[currentUser]) data[currentUser] = {};
+            if (!data[currentUser][category]) data[currentUser][category] = {};
+            
+            data[currentUser][category][qid] = {
+                question: question,
+                answer: answer,
+                timestamp: new Date().toISOString()
+            };
+            
+            saveStorageData(data);
+        }
+
+        function startSession() {
+            const username = document.getElementById('username-input').value.trim();
+            if (!username) {
+                showNotification('Please enter a username', 'warning');
+                return;
+            }
+
+            currentUser = username;
+            localStorage.setItem(USER_KEY, username);
+
+            document.getElementById('welcome-screen').classList.add('hidden');
+            document.getElementById('main-screen').classList.remove('hidden');
+            document.getElementById('user-badge').textContent = `👤 ${username}`;
+
+            populateCategoryFilter();
+            updateProgress();
+            loadNextQuestion();
+        }
+
+        function logout() {
+            currentUser = null;
+            localStorage.removeItem(USER_KEY);
+            document.getElementById('main-screen').classList.add('hidden');
+            document.getElementById('welcome-screen').classList.remove('hidden');
+        }
+
+        function populateCategoryFilter() {
+            const select = document.getElementById('category-filter');
+            select.innerHTML = '<option value="">All Categories</option>';
+            
+            Object.keys(questions).sort().forEach(category => {
+                const option = document.createElement('option');
+                option.value = category;
+                option.textContent = formatCategoryName(category);
+                select.appendChild(option);
+            });
+        }
+
+        function formatCategoryName(name) {
+            return name.split('_').map(word => 
+                word.charAt(0).toUpperCase() + word.slice(1)
+            ).join(' ');
+        }
+
+        function getProgress() {
+            const answers = getUserAnswers();
+            let answered = 0;
+            let total = 0;
+
+            Object.keys(questions).forEach(category => {
+                const categoryQuestions = questions[category];
+                Object.keys(categoryQuestions).forEach(qid => {
+                    total++;
+                    if (answers[category] && answers[category][qid]) {
+                        answered++;
+                    }
+                });
+            });
+
+            return { answered, total };
+        }
+
+        function updateProgress() {
+            const { answered, total } = getProgress();
+            const percentage = total > 0 ? (answered / total * 100).toFixed(1) : 0;
+
+            document.getElementById('progress-fill').style.width = `${percentage}%`;
+            document.getElementById('progress-text').textContent = 
+                `${answered} / ${total} questions answered (${percentage}%)`;
+
+            updateCategoryGrid();
+        }
+
+        function updateCategoryGrid() {
+            const grid = document.getElementById('category-grid');
+            const answers = getUserAnswers();
+            grid.innerHTML = '';
+
+            Object.keys(questions).sort().forEach(category => {
+                const categoryQuestions = questions[category];
+                const total = Object.keys(categoryQuestions).length;
+                let answered = 0;
+
+                Object.keys(categoryQuestions).forEach(qid => {
+                    if (answers[category] && answers[category][qid]) {
+                        answered++;
+                    }
+                });
+
+                const item = document.createElement('div');
+                item.className = 'category-item';
+                item.innerHTML = `
+                    <span class="category-name">${formatCategoryName(category)}</span>
+                    <span class="category-progress ${answered === total ? 'category-complete' : ''}">
+                        ${answered === total ? '✅' : ''} ${answered}/${total}
+                    </span>
+                `;
+                grid.appendChild(item);
+            });
+        }
+
+        function loadNextQuestion(categoryFilter = null) {
+            const answers = getUserAnswers();
+            const filter = categoryFilter || document.getElementById('category-filter').value;
+            const categories = filter ? [filter] : Object.keys(questions).sort();
+
+            for (const category of categories) {
+                if (!questions[category]) continue;
+                
+                const questionIds = Object.keys(questions[category]).sort((a, b) => {
+                    const numA = parseInt(a.replace('q', ''));
+                    const numB = parseInt(b.replace('q', ''));
+                    return numA - numB;
+                });
+
+                for (const qid of questionIds) {
+                    if (!answers[category] || !answers[category][qid]) {
+                        currentCategory = category;
+                        currentQid = qid;
+                        currentQuestion = questions[category][qid];
+
+                        document.getElementById('question-category').textContent = 
+                            `📂 ${formatCategoryName(category)}`;
+                        document.getElementById('question-text').textContent = currentQuestion;
+                        document.getElementById('answer-input').value = '';
+                        document.getElementById('question-card').classList.remove('hidden');
+                        document.getElementById('answer-section').classList.remove('hidden');
+                        document.getElementById('complete-card').classList.add('hidden');
+                        return;
+                    }
+                }
+            }
+
+            // No more questions
+            currentQuestion = null;
+            currentCategory = null;
+            currentQid = null;
+            document.getElementById('question-card').classList.add('hidden');
+            document.getElementById('answer-section').classList.add('hidden');
+            document.getElementById('complete-card').classList.remove('hidden');
+        }
+
+        function submitAnswer() {
+            const answer = document.getElementById('answer-input').value.trim();
+            if (!answer) {
+                showNotification('Please enter an answer', 'warning');
+                return;
+            }
+
+            if (!currentQuestion || !currentCategory || !currentQid) {
+                return;
+            }
+
+            saveAnswer(currentCategory, currentQid, currentQuestion, answer);
+            showNotification('Answer saved!', 'success');
+            updateProgress();
+            loadNextQuestion();
+        }
+
+        function skipQuestion() {
+            if (!currentQuestion) return;
+
+            const answers = getUserAnswers();
+            const filter = document.getElementById('category-filter').value;
+            const categories = filter ? [filter] : Object.keys(questions).sort();
+
+            for (const category of categories) {
+                if (!questions[category]) continue;
+
+                const questionIds = Object.keys(questions[category]).sort((a, b) => {
+                    const numA = parseInt(a.replace('q', ''));
+                    const numB = parseInt(b.replace('q', ''));
+                    return numA - numB;
+                });
+
+                for (const qid of questionIds) {
+                    // Skip current question
+                    if (category === currentCategory && qid === currentQid) continue;
+                    
+                    if (!answers[category] || !answers[category][qid]) {
+                        currentCategory = category;
+                        currentQid = qid;
+                        currentQuestion = questions[category][qid];
+
+                        document.getElementById('question-category').textContent = 
+                            `📂 ${formatCategoryName(category)}`;
+                        document.getElementById('question-text').textContent = currentQuestion;
+                        document.getElementById('answer-input').value = '';
+                        return;
+                    }
+                }
+            }
+
+            showNotification('No other unanswered questions available', 'info');
+        }
+
+        function filterCategory() {
+            loadNextQuestion();
+        }
+
+        function showTab(tabName) {
+            // Update tab buttons
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            event.target.classList.add('active');
+
+            // Update tab content
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.remove('active');
+            });
+            document.getElementById(`tab-${tabName}`).classList.add('active');
+
+            if (tabName === 'progress') {
+                updateCategoryGrid();
+            }
+        }
+
+        function selectExport(format) {
+            selectedExport = format;
+            document.querySelectorAll('.export-option').forEach(opt => {
+                opt.classList.remove('selected');
+            });
+            document.getElementById(`export-${format}`).classList.add('selected');
+        }
+
+        function exportData() {
+            const answers = getUserAnswers();
+            const allAnswers = [];
+
+            Object.keys(answers).forEach(category => {
+                Object.keys(answers[category]).forEach(qid => {
+                    const answer = answers[category][qid];
+                    allAnswers.push({
+                        category: category,
+                        question_id: qid,
+                        question: answer.question,
+                        answer: answer.answer,
+                        timestamp: answer.timestamp
+                    });
+                });
+            });
+
+            if (allAnswers.length === 0) {
+                showNotification('No answers to export. Answer some questions first!', 'warning');
+                return;
+            }
+
+            let content, filename, type;
+            const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
+
+            if (selectedExport === 'jsonl') {
+                content = allAnswers.map(a => JSON.stringify({
+                    instruction: a.question,
+                    output: a.answer,
+                    category: a.category
+                })).join('\n');
+                filename = `${currentUser}_training_${timestamp}.jsonl`;
+                type = 'application/jsonl';
+            } else if (selectedExport === 'conversation') {
+                content = allAnswers.map(a => JSON.stringify({
+                    messages: [
+                        { role: 'user', content: a.question },
+                        { role: 'assistant', content: a.answer }
+                    ],
+                    category: a.category
+                })).join('\n');
+                filename = `${currentUser}_conversations_${timestamp}.jsonl`;
+                type = 'application/jsonl';
+            } else {
+                content = JSON.stringify({
+                    username: currentUser,
+                    export_date: new Date().toISOString(),
+                    total_answers: allAnswers.length,
+                    answers: allAnswers
+                }, null, 2);
+                filename = `${currentUser}_complete_${timestamp}.json`;
+                type = 'application/json';
+            }
+
+            // Download file
+            const blob = new Blob([content], { type });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+
+            showNotification(`Exported ${allAnswers.length} answers!`, 'success');
+        }
+
+        function showNotification(message, type = 'success') {
+            const notification = document.createElement('div');
+            notification.className = 'notification';
+            notification.style.background = type === 'success' ? 'var(--success)' : 
+                                           type === 'warning' ? 'var(--warning)' : 'var(--primary)';
+            notification.textContent = message;
+            document.body.appendChild(notification);
+
+            setTimeout(() => {
+                notification.remove();
+            }, 3000);
+        }
+    </script>
+</body>
+</html>

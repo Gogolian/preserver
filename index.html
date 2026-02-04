@@ -1164,10 +1164,10 @@
             
             reader.onload = function(e) {
                 try {
-                    const importData = JSON.parse(e.target.result);
+                    const parsedData = JSON.parse(e.target.result);
                     
                     // Validate the JSON structure
-                    if (!importData.answers || !Array.isArray(importData.answers)) {
+                    if (!parsedData.answers || !Array.isArray(parsedData.answers)) {
                         statusDiv.innerHTML = '<span style="color: var(--warning);">⚠️ Invalid JSON format: missing \'answers\' field.</span>';
                         return;
                     }
@@ -1180,7 +1180,7 @@
                     let importedCount = 0;
                     let skippedCount = 0;
                     
-                    importData.answers.forEach(answer => {
+                    parsedData.answers.forEach(answer => {
                         try {
                             const category = answer.category;
                             const qid = answer.question_id;

@@ -55,6 +55,14 @@ class Answer:
         }
 
 
+def _parse_question_id(question_id: str) -> int:
+    """Parse question ID to integer for sorting. Returns 0 if not a number."""
+    try:
+        return int(question_id.replace("q", ""))
+    except (ValueError, AttributeError):
+        return 0
+
+
 class PreserverApp:
     """Main application class for Preserver."""
     
@@ -77,7 +85,7 @@ class PreserverApp:
                 # Sort question files numerically
                 question_files = sorted(
                     category_dir.glob("*.txt"),
-                    key=lambda x: int(x.stem.replace("q", "")) if x.stem.replace("q", "").isdigit() else 0
+                    key=lambda x: _parse_question_id(x.stem)
                 )
                 
                 for q_file in question_files:
@@ -155,7 +163,7 @@ class PreserverApp:
             return random.choice(unanswered)
         else:
             # Sort by category and question ID for deterministic order
-            unanswered.sort(key=lambda x: (x[1], int(x[2].replace("q", "")) if x[2].replace("q", "").isdigit() else 0))
+            unanswered.sort(key=lambda x: (x[1], _parse_question_id(x[2])))
             return unanswered[0]
     
     def save_answer(self, username: str, question: str, answer: str, 

@@ -469,6 +469,9 @@
 
                 <div class="card" id="answer-section">
                     <textarea id="answer-input" placeholder="Share your thoughts..."></textarea>
+                    <p style="font-size: 12px; color: var(--text-muted); margin-top: 5px;">
+                        💡 Tip: Press Ctrl+Enter (⌘+Enter on Mac) to save • Press Esc to skip
+                    </p>
                     <div class="button-group">
                         <button class="btn-primary" onclick="submitAnswer()">💾 Save & Next</button>
                         <button class="btn-secondary" onclick="skipQuestion()">⏭️ Skip</button>
@@ -562,7 +565,16 @@
             });
 
             document.getElementById('answer-input').addEventListener('keypress', (e) => {
-                if (e.key === 'Enter' && e.ctrlKey) submitAnswer();
+                if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
+                    submitAnswer();
+                }
+            });
+            
+            // Add Escape key to skip
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape' && currentQuestion) {
+                    skipQuestion();
+                }
             });
         });
 

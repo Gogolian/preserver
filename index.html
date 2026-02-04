@@ -570,8 +570,8 @@
                 }
             });
             
-            // Add Escape key to skip
-            document.addEventListener('keydown', (e) => {
+            // Add Escape key to skip (only when answer textarea is focused)
+            document.getElementById('answer-input').addEventListener('keydown', (e) => {
                 if (e.key === 'Escape' && currentQuestion) {
                     skipQuestion();
                 }

@@ -56,7 +56,15 @@ class Answer:
 
 
 def _parse_question_id(question_id: str) -> int:
-    """Parse question ID to integer for sorting. Returns 0 if not a number."""
+    """
+    Parse question ID to integer for sorting.
+    
+    Args:
+        question_id: Question ID in format like 'q1', 'q2', 'q10', etc.
+    
+    Returns:
+        Integer value for sorting, or 0 if not parseable
+    """
     try:
         return int(question_id.replace("q", ""))
     except (ValueError, AttributeError):
@@ -313,8 +321,8 @@ class PreserverApp:
                     
                     imported_count += 1
                 
-                except (KeyError, TypeError) as e:
-                    # Skip malformed answers
+                except (KeyError, TypeError):
+                    # Skip malformed answers (missing required fields)
                     continue
             
             message = f"Successfully imported {imported_count} answers"

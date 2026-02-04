@@ -241,5 +241,188 @@ class TestExport:
             assert fmt in ["jsonl", "conversation", "json"]
 
 
+class TestImport:
+    """Tests for import functionality."""
+    
+    def test_import_valid_json(self):
+        """Test importing valid JSON data."""
+        temp_dir = tempfile.mkdtemp()
+        
+        import app as app_module
+        original_template = app_module.ANSWERS_DIR_TEMPLATE
+        app_module.ANSWERS_DIR_TEMPLATE = Path(temp_dir) / "data-{}"
+        
+        try:
+            preserver = PreserverApp()
+            
+            # Create test export data
+            test_data = {
+                "username": "test_import_user",
+                "export_date": "2024-01-15T10:30:00",
+                "total_answers": 2,
+                "answers": [
+                    {
+                        "question": "What is your favorite color?",
+                        "answer": "Blue",
+                        "category": "preferences",
+                        "question_id": "q1",
+                        "timestamp": "2024-01-15T10:30:00"
+                    },
+                    {
+                        "question": "What are your goals?",
+                        "answer": "Learn Python",
+                        "category": "goals",
+                        "question_id": "q1",
+                        "timestamp": "2024-01-15T10:31:00"
+                    }
+                ]
+            }
+            
+            # Import the data
+            success, message, count = preserver.import_from_json(
+                "test_import_user",
+                json.dumps(test_data)
+            )
+            
+            assert success is True
+            assert count == 2
+            assert "Successfully imported 2 answers" in message
+            
+            # Verify the answers were saved
+            answer_path_1 = Path(temp_dir) / "data-test_import_user" / "preferences" / "q1.txt"
+            answer_path_2 = Path(temp_dir) / "data-test_import_user" / "goals" / "q1.txt"
+            
+            assert answer_path_1.exists()
+            assert answer_path_2.exists()
+            
+        finally:
+            app_module.ANSWERS_DIR_TEMPLATE = original_template
+            shutil.rmtree(temp_dir)
+    
+    def test_import_invalid_json(self):
+        """Test importing invalid JSON."""
+        preserver = PreserverApp()
+        
+        success, message, count = preserver.import_from_json(
+            "test_user",
+            "invalid json {{"
+        )
+        
+        assert success is False
+        assert "Invalid JSON" in message
+        assert count == 0
+    
+    def test_import_missing_answers_field(self):
+        """Test importing JSON without answers field."""
+        preserver = PreserverApp()
+        
+        test_data = {
+            "username": "test_user",
+            "some_field": "value"
+        }
+        
+        success, message, count = preserver.import_from_json(
+            "test_user",
+            json.dumps(test_data)
+        )
+        
+        assert success is False
+        assert "missing 'answers' field" in message
+        assert count == 0
+    
+    def test_import_skips_existing_answers(self):
+        """Test that import skips already answered questions."""
+        temp_dir = tempfile.mkdtemp()
+        
+        import app as app_module
+        original_template = app_module.ANSWERS_DIR_TEMPLATE
+        app_module.ANSWERS_DIR_TEMPLATE = Path(temp_dir) / "data-{}"
+        
+        try:
+            preserver = PreserverApp()
+            
+            # Save an existing answer
+            preserver.save_answer(
+                username="test_skip_user",
+                question="What is your favorite color?",
+                answer="Red",
+                category="preferences",
+                question_id="q1"
+            )
+            
+            # Try to import data with the same question
+            test_data = {
+                "username": "test_skip_user",
+                "answers": [
+                    {
+                        "question": "What is your favorite color?",
+                        "answer": "Blue",
+                        "category": "preferences",
+                        "question_id": "q1",
+                        "timestamp": "2024-01-15T10:30:00"
+                    },
+                    {
+                        "question": "New question",
+                        "answer": "New answer",
+                        "category": "goals",
+                        "question_id": "q2",
+                        "timestamp": "2024-01-15T10:31:00"
+                    }
+                ]
+            }
+            
+            success, message, count = preserver.import_from_json(
+                "test_skip_user",
+                json.dumps(test_data)
+            )
+            
+            assert success is True
+            assert count == 1
+            assert "1 already existed and were skipped" in message
+            
+        finally:
+            app_module.ANSWERS_DIR_TEMPLATE = original_template
+            shutil.rmtree(temp_dir)
+
+
+class TestRandomness:
+    """Tests for random question selection."""
+    
+    def test_get_next_question_returns_different_questions(self):
+        """Test that randomness returns different questions over multiple calls."""
+        preserver = PreserverApp()
+        
+        # Get multiple questions for a unique user
+        test_user = "test_randomness_user_12345"
+        questions_seen = set()
+        
+        # Get 10 questions
+        for _ in range(10):
+            result = preserver.get_next_question(test_user, randomize=True)
+            if result:
+                question, category, q_id = result
+                questions_seen.add((category, q_id))
+        
+        # We should have seen more than 1 unique question
+        # (very unlikely to get the same question 10 times with 900+ questions)
+        assert len(questions_seen) > 1
+    
+    def test_get_next_question_deterministic_mode(self):
+        """Test that non-random mode returns consistent results."""
+        preserver = PreserverApp()
+        
+        test_user = "test_deterministic_user_67890"
+        
+        # Get the same question twice with randomize=False
+        result1 = preserver.get_next_question(test_user, randomize=False)
+        result2 = preserver.get_next_question(test_user, randomize=False)
+        
+        assert result1 is not None
+        assert result2 is not None
+        assert result1 == result2  # Should be the same question
+
+
 if __name__ == "__main__":
     pytest.main([__file__, "-v"])
+
+

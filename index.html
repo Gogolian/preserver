@@ -6,17 +6,18 @@
     <title>Preserver - Your Personal Digital Twin Creator</title>
     <style>
         :root {
-            --primary: #667eea;
-            --primary-dark: #5a67d8;
-            --secondary: #764ba2;
-            --success: #48bb78;
-            --warning: #ed8936;
-            --bg: #f7fafc;
-            --card: #ffffff;
-            --text: #2d3748;
-            --text-muted: #718096;
-            --border: #e2e8f0;
-            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            /* Calm, cozy color palette - muted, warm tones */
+            --primary: #8b9dc3;        /* Soft muted blue */
+            --primary-dark: #6b7fa3;   /* Darker muted blue */
+            --secondary: #9d8b9f;      /* Soft muted purple */
+            --success: #7d9b7d;        /* Calm sage green */
+            --warning: #c4a57b;        /* Warm muted orange */
+            --bg: #f5f3f0;             /* Warm off-white */
+            --card: #ffffff;           /* Clean white */
+            --text: #4a4a4a;           /* Soft dark gray */
+            --text-muted: #7a7a7a;     /* Muted gray */
+            --border: #e0ddd9;         /* Warm light gray */
+            --shadow: 0 2px 4px rgba(0, 0, 0, 0.08);  /* Softer shadow */
         }
 
         * {
@@ -46,11 +47,13 @@
             color: white;
             margin-bottom: 30px;
             border-radius: 0 0 20px 20px;
+            opacity: 0.95;  /* Slightly softer */
         }
 
         header h1 {
             font-size: 2.5em;
             margin-bottom: 10px;
+            font-weight: 600;  /* Slightly lighter */
         }
 
         header p {
@@ -128,8 +131,8 @@
         }
 
         .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+            transform: translateY(-1px);  /* Gentler hover effect */
+            box-shadow: 0 3px 8px rgba(139, 157, 195, 0.3);  /* Softer shadow */
         }
 
         .btn-secondary {
@@ -138,7 +141,7 @@
         }
 
         .btn-secondary:hover {
-            background: #cbd5e0;
+            background: #d0cdc9;  /* Slightly darker on hover */
         }
 
         .hidden {
@@ -154,7 +157,7 @@
         }
 
         .progress-fill {
-            background: linear-gradient(90deg, var(--success), #38a169);
+            background: linear-gradient(90deg, var(--success), #6d8b6d);  /* Softer green gradient */
             height: 100%;
             transition: width 0.5s ease;
         }
@@ -413,8 +416,20 @@
                     <input type="text" id="username-input" placeholder="Enter your username..." />
                     <button class="btn-primary" onclick="startSession()">🚀 Start</button>
                 </div>
+                
+                <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid var(--border);">
+                    <h3 style="font-size: 1.2em; margin-bottom: 10px;">📥 Import Previous Session</h3>
+                    <p style="font-size: 0.9em; color: var(--text-muted); margin-bottom: 10px;">
+                        Have an exported JSON file? Upload it to continue where you left off.
+                    </p>
+                    <div style="display: flex; gap: 10px; align-items: center; justify-content: center;">
+                        <input type="file" id="import-file" accept=".json" style="flex: 1; max-width: 300px;">
+                        <button class="btn-secondary" onclick="importData()">📤 Import</button>
+                    </div>
+                    <div id="import-status" style="margin-top: 10px; font-size: 0.9em; text-align: center;"></div>
+                </div>
 
-                <p style="color: var(--text-muted); font-size: 14px;">
+                <p style="color: var(--text-muted); font-size: 14px; margin-top: 20px;">
                     Your data is stored only in this browser's local storage.
                 </p>
             </div>
@@ -454,6 +469,9 @@
 
                 <div class="card" id="answer-section">
                     <textarea id="answer-input" placeholder="Share your thoughts..."></textarea>
+                    <p style="font-size: 12px; color: var(--text-muted); margin-top: 5px;">
+                        💡 Tip: Press Ctrl+Enter (⌘+Enter on Mac) to save • Press Esc to skip
+                    </p>
                     <div class="button-group">
                         <button class="btn-primary" onclick="submitAnswer()">💾 Save & Next</button>
                         <button class="btn-secondary" onclick="skipQuestion()">⏭️ Skip</button>
@@ -547,7 +565,16 @@
             });
 
             document.getElementById('answer-input').addEventListener('keypress', (e) => {
-                if (e.key === 'Enter' && e.ctrlKey) submitAnswer();
+                if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
+                    submitAnswer();
+                }
+            });
+            
+            // Add Escape key to skip (only when answer textarea is focused)
+            document.getElementById('answer-input').addEventListener('keydown', (e) => {
+                if (e.key === 'Escape' && currentQuestion) {
+                    skipQuestion();
+                }
             });
         });
 
@@ -907,31 +934,42 @@
             const filter = categoryFilter || document.getElementById('category-filter').value;
             const categories = filter ? [filter] : Object.keys(questions).sort();
 
+            // Collect all unanswered questions
+            const unanswered = [];
+            
             for (const category of categories) {
                 if (!questions[category]) continue;
                 
-                const questionIds = Object.keys(questions[category]).sort((a, b) => {
-                    const numA = parseInt(a.replace('q', ''));
-                    const numB = parseInt(b.replace('q', ''));
-                    return numA - numB;
-                });
+                const questionIds = Object.keys(questions[category]);
 
                 for (const qid of questionIds) {
                     if (!answers[category] || !answers[category][qid]) {
-                        currentCategory = category;
-                        currentQid = qid;
-                        currentQuestion = questions[category][qid];
-
-                        document.getElementById('question-category').textContent = 
-                            `📂 ${formatCategoryName(category)}`;
-                        document.getElementById('question-text').textContent = currentQuestion;
-                        document.getElementById('answer-input').value = '';
-                        document.getElementById('question-card').classList.remove('hidden');
-                        document.getElementById('answer-section').classList.remove('hidden');
-                        document.getElementById('complete-card').classList.add('hidden');
-                        return;
+                        unanswered.push({
+                            category: category,
+                            qid: qid,
+                            question: questions[category][qid]
+                        });
                     }
                 }
+            }
+            
+            // Pick a random question from unanswered
+            if (unanswered.length > 0) {
+                const randomIndex = Math.floor(Math.random() * unanswered.length);
+                const selected = unanswered[randomIndex];
+                
+                currentCategory = selected.category;
+                currentQid = selected.qid;
+                currentQuestion = selected.question;
+
+                document.getElementById('question-category').textContent = 
+                    `📂 ${formatCategoryName(selected.category)}`;
+                document.getElementById('question-text').textContent = selected.question;
+                document.getElementById('answer-input').value = '';
+                document.getElementById('question-card').classList.remove('hidden');
+                document.getElementById('answer-section').classList.remove('hidden');
+                document.getElementById('complete-card').classList.add('hidden');
+                return;
             }
 
             // No more questions
@@ -967,31 +1005,42 @@
             const filter = document.getElementById('category-filter').value;
             const categories = filter ? [filter] : Object.keys(questions).sort();
 
+            // Collect all unanswered questions except current
+            const unanswered = [];
+            
             for (const category of categories) {
                 if (!questions[category]) continue;
 
-                const questionIds = Object.keys(questions[category]).sort((a, b) => {
-                    const numA = parseInt(a.replace('q', ''));
-                    const numB = parseInt(b.replace('q', ''));
-                    return numA - numB;
-                });
+                const questionIds = Object.keys(questions[category]);
 
                 for (const qid of questionIds) {
                     // Skip current question
                     if (category === currentCategory && qid === currentQid) continue;
                     
                     if (!answers[category] || !answers[category][qid]) {
-                        currentCategory = category;
-                        currentQid = qid;
-                        currentQuestion = questions[category][qid];
-
-                        document.getElementById('question-category').textContent = 
-                            `📂 ${formatCategoryName(category)}`;
-                        document.getElementById('question-text').textContent = currentQuestion;
-                        document.getElementById('answer-input').value = '';
-                        return;
+                        unanswered.push({
+                            category: category,
+                            qid: qid,
+                            question: questions[category][qid]
+                        });
                     }
                 }
+            }
+            
+            // Pick a random question
+            if (unanswered.length > 0) {
+                const randomIndex = Math.floor(Math.random() * unanswered.length);
+                const selected = unanswered[randomIndex];
+                
+                currentCategory = selected.category;
+                currentQid = selected.qid;
+                currentQuestion = selected.question;
+
+                document.getElementById('question-category').textContent = 
+                    `📂 ${formatCategoryName(selected.category)}`;
+                document.getElementById('question-text').textContent = selected.question;
+                document.getElementById('answer-input').value = '';
+                return;
             }
 
             showNotification('No other unanswered questions available', 'info');
@@ -1093,6 +1142,89 @@
             URL.revokeObjectURL(url);
 
             showNotification(`Exported ${allAnswers.length} answers!`, 'success');
+        }
+        
+        function importData() {
+            const fileInput = document.getElementById('import-file');
+            const statusDiv = document.getElementById('import-status');
+            const usernameInput = document.getElementById('username-input');
+            
+            if (!fileInput.files || fileInput.files.length === 0) {
+                statusDiv.innerHTML = '<span style="color: var(--warning);">⚠️ Please select a JSON file to import.</span>';
+                return;
+            }
+            
+            if (!usernameInput.value || !usernameInput.value.trim()) {
+                statusDiv.innerHTML = '<span style="color: var(--warning);">⚠️ Please enter a username first.</span>';
+                return;
+            }
+            
+            const file = fileInput.files[0];
+            const reader = new FileReader();
+            
+            reader.onload = function(e) {
+                try {
+                    const parsedData = JSON.parse(e.target.result);
+                    
+                    // Validate the JSON structure
+                    if (!parsedData.answers || !Array.isArray(parsedData.answers)) {
+                        statusDiv.innerHTML = '<span style="color: var(--warning);">⚠️ Invalid JSON format: missing \'answers\' field.</span>';
+                        return;
+                    }
+                    
+                    const username = usernameInput.value.trim();
+                    const data = getStorageData();
+                    
+                    if (!data[username]) data[username] = {};
+                    
+                    let importedCount = 0;
+                    let skippedCount = 0;
+                    
+                    parsedData.answers.forEach(answer => {
+                        try {
+                            const category = answer.category;
+                            const qid = answer.question_id;
+                            
+                            // Check if answer already exists
+                            if (data[username][category] && data[username][category][qid]) {
+                                skippedCount++;
+                                return;
+                            }
+                            
+                            // Import the answer
+                            if (!data[username][category]) data[username][category] = {};
+                            data[username][category][qid] = {
+                                question: answer.question,
+                                answer: answer.answer,
+                                timestamp: answer.timestamp || new Date().toISOString()
+                            };
+                            
+                            importedCount++;
+                        } catch (err) {
+                            // Skip malformed answers
+                        }
+                    });
+                    
+                    saveStorageData(data);
+                    
+                    let message = `✅ Successfully imported ${importedCount} answers`;
+                    if (skippedCount > 0) {
+                        message += ` (${skippedCount} already existed and were skipped)`;
+                    }
+                    statusDiv.innerHTML = `<span style="color: var(--success);">${message}</span>`;
+                    
+                    showNotification(message, 'success');
+                    
+                } catch (err) {
+                    statusDiv.innerHTML = '<span style="color: var(--warning);">❌ Error reading file: Invalid JSON format.</span>';
+                }
+            };
+            
+            reader.onerror = function() {
+                statusDiv.innerHTML = '<span style="color: var(--warning);">❌ Error reading file.</span>';
+            };
+            
+            reader.readAsText(file);
         }
 
         function showNotification(message, type = 'success') {

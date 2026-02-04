@@ -12,6 +12,7 @@ import gradio as gr
 import os
 import json
 import datetime
+import random
 from pathlib import Path
 from typing import Optional, Dict, List, Tuple
 from dataclasses import dataclass, asdict
@@ -126,29 +127,36 @@ class PreserverApp:
         """Get the path where an answer should be stored."""
         return ANSWERS_DIR_TEMPLATE.parent / f"data-{username}" / category / f"{question_id}.txt"
     
-    def get_next_question(self, username: str, category: Optional[str] = None) -> Optional[Tuple[str, str, str]]:
+    def get_next_question(self, username: str, category: Optional[str] = None, randomize: bool = True) -> Optional[Tuple[str, str, str]]:
         """
         Get the next unanswered question.
         Returns: (question_text, category, question_id) or None if all answered
         """
         categories = [category] if category else self.get_categories()
         
+        # Collect all unanswered questions
+        unanswered = []
         for cat in categories:
             if cat not in self.questions_cache:
                 continue
                 
-            # Sort question IDs numerically
-            question_ids = sorted(
-                self.questions_cache[cat].keys(),
-                key=lambda x: int(x.replace("q", "")) if x.replace("q", "").isdigit() else 0
-            )
+            question_ids = list(self.questions_cache[cat].keys())
             
             for q_id in question_ids:
                 answer_path = self._get_answer_path(username, cat, q_id)
                 if not answer_path.exists():
-                    return self.questions_cache[cat][q_id], cat, q_id
+                    unanswered.append((self.questions_cache[cat][q_id], cat, q_id))
         
-        return None
+        if not unanswered:
+            return None
+        
+        # Return random question if randomize is True, otherwise return first
+        if randomize:
+            return random.choice(unanswered)
+        else:
+            # Sort by category and question ID for deterministic order
+            unanswered.sort(key=lambda x: (x[1], int(x[2].replace("q", "")) if x[2].replace("q", "").isdigit() else 0))
+            return unanswered[0]
     
     def save_answer(self, username: str, question: str, answer: str, 
                     category: str, question_id: str) -> bool:
@@ -245,6 +253,73 @@ class PreserverApp:
                 }, f, indent=2, ensure_ascii=False)
         
         return str(export_path)
+    
+    def import_from_json(self, username: str, json_data: str) -> Tuple[bool, str, int]:
+        """
+        Import answers from JSON export.
+        
+        Args:
+            username: The username to import data for
+            json_data: JSON string containing exported data
+        
+        Returns:
+            Tuple of (success, message, count_imported)
+        """
+        try:
+            data = json.loads(json_data)
+            
+            # Validate the JSON structure
+            if "answers" not in data:
+                return False, "Invalid JSON format: missing 'answers' field", 0
+            
+            imported_count = 0
+            skipped_count = 0
+            
+            for answer_data in data["answers"]:
+                try:
+                    # Check if this answer already exists
+                    answer_path = self._get_answer_path(
+                        username, 
+                        answer_data["category"], 
+                        answer_data["question_id"]
+                    )
+                    
+                    # Skip if already answered (don't overwrite)
+                    if answer_path.exists():
+                        skipped_count += 1
+                        continue
+                    
+                    # Create the answer object and save it
+                    answer_obj = Answer(
+                        question=answer_data["question"],
+                        answer=answer_data["answer"],
+                        category=answer_data["category"],
+                        question_id=answer_data["question_id"],
+                        timestamp=answer_data.get("timestamp", datetime.datetime.now().isoformat())
+                    )
+                    
+                    # Save the answer
+                    answer_path.parent.mkdir(parents=True, exist_ok=True)
+                    with open(answer_path, "w", encoding="utf-8") as f:
+                        json.dump(asdict(answer_obj), f, indent=2, ensure_ascii=False)
+                    
+                    imported_count += 1
+                
+                except (KeyError, TypeError) as e:
+                    # Skip malformed answers
+                    continue
+            
+            message = f"Successfully imported {imported_count} answers"
+            if skipped_count > 0:
+                message += f" ({skipped_count} already existed and were skipped)"
+            
+            return True, message, imported_count
+        
+        except json.JSONDecodeError:
+            return False, "Invalid JSON format", 0
+        except Exception as e:
+            return False, f"Error importing data: {str(e)}", 0
+
 
 
 # Initialize the app
@@ -418,19 +493,16 @@ def on_skip_question(current_question: str, current_category: str,
     if selected_category and selected_category != "All Categories":
         cat_filter = selected_category.lower().replace(" ", "_")
     
-    # Find a different unanswered question
+    # Get a random unanswered question, excluding the current one
     categories = [cat_filter] if cat_filter else preserver.get_categories()
     
+    # Collect all unanswered questions except current
+    unanswered = []
     for cat in categories:
         if cat not in preserver.questions_cache:
             continue
         
-        question_ids = sorted(
-            preserver.questions_cache[cat].keys(),
-            key=lambda x: int(x.replace("q", "")) if x.replace("q", "").isdigit() else 0
-        )
-        
-        for q_id in question_ids:
+        for q_id in preserver.questions_cache[cat].keys():
             # Skip current question
             if cat == current_category and q_id == current_qid:
                 continue
@@ -438,15 +510,20 @@ def on_skip_question(current_question: str, current_category: str,
             answer_path = preserver._get_answer_path(username, cat, q_id)
             if not answer_path.exists():
                 question = preserver.questions_cache[cat][q_id]
-                cat_display = format_category_name(cat)
-                question_md = f"### 💭 Category: {cat_display}\n\n{question}"
-                return (
-                    gr.update(value=question_md),
-                    gr.update(value=""),
-                    question,
-                    cat,
-                    q_id
-                )
+                unanswered.append((question, cat, q_id))
+    
+    # Pick a random question
+    if unanswered:
+        question, cat, q_id = random.choice(unanswered)
+        cat_display = format_category_name(cat)
+        question_md = f"### 💭 Category: {cat_display}\n\n{question}"
+        return (
+            gr.update(value=question_md),
+            gr.update(value=""),
+            question,
+            cat,
+            q_id
+        )
     
     # If no other question found, stay on current
     if current_question:
@@ -529,6 +606,30 @@ def on_logout() -> Tuple:
     )
 
 
+def on_import_data(username_input: str, filepath: str) -> str:
+    """Handle data import from JSON file."""
+    if not filepath:
+        return "⚠️ Please select a JSON file to import."
+    
+    if not username_input or not username_input.strip():
+        return "⚠️ Please enter a username first."
+    
+    try:
+        with open(filepath, "r", encoding="utf-8") as f:
+            json_data = f.read()
+        
+        success, message, count = preserver.import_from_json(username_input.strip(), json_data)
+        
+        if success:
+            return f"✅ {message}"
+        else:
+            return f"⚠️ {message}"
+    
+    except Exception as e:
+        return f"❌ Error reading file: {str(e)}"
+
+
+
 # Build Gradio Interface
 custom_css = """
 #main-container {
@@ -538,7 +639,7 @@ custom_css = """
 .question-box {
     font-size: 1.1em;
     padding: 20px;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #8b9dc3 0%, #9d8b9f 100%);
     color: white;
     border-radius: 10px;
     margin-bottom: 15px;
@@ -546,10 +647,10 @@ custom_css = """
 .progress-bar {
     font-size: 1.2em;
     font-weight: bold;
-    color: #4CAF50;
+    color: #7d9b7d;
 }
 .category-stats {
-    background: #f5f5f5;
+    background: #f5f3f0;
     padding: 15px;
     border-radius: 8px;
 }
@@ -577,6 +678,19 @@ with gr.Blocks() as app:
                     scale=3
                 )
                 start_btn = gr.Button("🚀 Start", variant="primary", scale=1)
+            
+            # Import section
+            gr.Markdown("---\n### 📥 Import Previous Session\nHave an exported JSON file? Upload it to continue where you left off.")
+            
+            with gr.Row():
+                import_file = gr.File(
+                    label="Upload JSON Export",
+                    file_types=[".json"],
+                    type="filepath"
+                )
+                import_btn = gr.Button("📤 Import", variant="secondary")
+            
+            import_status = gr.Markdown("")
             
             gr.Markdown(f"""
             ### 📊 Available Content
@@ -678,6 +792,12 @@ with gr.Blocks() as app:
         outputs=[welcome_panel, main_panel, progress_display, question_display,
                  category_stats_display, current_question_data, current_category,
                  current_qid, username_state]
+    )
+    
+    import_btn.click(
+        on_import_data,
+        inputs=[username_input, import_file],
+        outputs=[import_status]
     )
     
     submit_btn.click(

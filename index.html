@@ -764,6 +764,7 @@
         let currentCategory = null;
         let currentQid = null;
         let selectedExport = 'jsonl';
+        let draftSaveTimeout = null;
 
         // Storage keys
         const STORAGE_KEY = 'preserver_data';
@@ -793,7 +794,7 @@
                 }
             });
 
-            document.getElementById('answer-input').addEventListener('input', saveCurrentDraft);
+            document.getElementById('answer-input').addEventListener('input', queueCurrentDraftSave);
             
             // Add Escape key to skip (only when answer textarea is focused)
             document.getElementById('answer-input').addEventListener('keydown', (e) => {
@@ -1034,6 +1035,13 @@
             localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
         }
 
+        function ensureNestedBucket(data, username, category = null) {
+            if (!data[username]) data[username] = {};
+            if (!category) return data[username];
+            if (!data[username][category]) data[username][category] = {};
+            return data[username][category];
+        }
+
         function getUserAnswers() {
             const data = getStorageData();
             return data[currentUser] || {};
@@ -1041,10 +1049,9 @@
 
         function saveAnswer(category, qid, question, answer) {
             const data = getStorageData();
-            if (!data[currentUser]) data[currentUser] = {};
-            if (!data[currentUser][category]) data[currentUser][category] = {};
+            const categoryAnswers = ensureNestedBucket(data, currentUser, category);
             
-            data[currentUser][category][qid] = {
+            categoryAnswers[qid] = {
                 question: question,
                 answer: answer,
                 timestamp: new Date().toISOString()
@@ -1071,20 +1078,35 @@
             if (status) status.textContent = message;
         }
 
+        function queueCurrentDraftSave() {
+            if (draftSaveTimeout) clearTimeout(draftSaveTimeout);
+            draftSaveTimeout = setTimeout(() => {
+                draftSaveTimeout = null;
+                saveCurrentDraft();
+            }, 300);
+        }
+
+        function flushCurrentDraft() {
+            if (draftSaveTimeout) {
+                clearTimeout(draftSaveTimeout);
+                draftSaveTimeout = null;
+            }
+            saveCurrentDraft();
+        }
+
         function saveCurrentDraft() {
             if (!currentUser || !currentCategory || !currentQid) return;
 
             const answerInput = document.getElementById('answer-input');
             const data = getDraftData();
-            if (!data[currentUser]) data[currentUser] = {};
-            if (!data[currentUser][currentCategory]) data[currentUser][currentCategory] = {};
+            const categoryDrafts = ensureNestedBucket(data, currentUser, currentCategory);
 
             const draft = answerInput.value;
             if (draft.trim()) {
-                data[currentUser][currentCategory][currentQid] = draft;
+                categoryDrafts[currentQid] = draft;
                 updateDraftStatus(DRAFT_SAVED_MESSAGE);
-            } else if (data[currentUser][currentCategory][currentQid]) {
-                delete data[currentUser][currentCategory][currentQid];
+            } else if (categoryDrafts[currentQid]) {
+                delete categoryDrafts[currentQid];
                 updateDraftStatus('');
             }
 
@@ -1102,6 +1124,10 @@
 
         function clearCurrentDraft() {
             if (!currentUser || !currentCategory || !currentQid) return;
+            if (draftSaveTimeout) {
+                clearTimeout(draftSaveTimeout);
+                draftSaveTimeout = null;
+            }
 
             const data = getDraftData();
             if (data[currentUser]?.[currentCategory]?.[currentQid]) {
@@ -1290,6 +1316,7 @@
 
         function skipQuestion() {
             if (!currentQuestion) return;
+            flushCurrentDraft();
 
             const answers = getUserAnswers();
             const filter = document.getElementById('category-filter').value;
@@ -1337,6 +1364,7 @@
         }
 
         function filterCategory() {
+            flushCurrentDraft();
             loadNextQuestion();
         }
 

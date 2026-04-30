@@ -194,6 +194,12 @@
             resize: vertical;
         }
 
+        .draft-status {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-top: 5px;
+        }
+
         button {
             padding: 13px 24px;
             border: none;
@@ -681,9 +687,10 @@
 
                 <div class="card" id="answer-section">
                     <textarea id="answer-input" placeholder="Share your thoughts..."></textarea>
-                    <p style="font-size: 12px; color: var(--text-muted); margin-top: 5px;">
+                    <p class="draft-status">
                         💡 Tip: Press Ctrl+Enter (⌘+Enter on Mac) to save • Press Esc to skip
                     </p>
+                    <p class="draft-status" id="draft-status" aria-live="polite"></p>
                     <div class="button-group">
                         <button class="btn-primary" onclick="submitAnswer()">💾 Save & Next</button>
                         <button class="btn-secondary" onclick="skipQuestion()">⏭️ Skip</button>
@@ -760,6 +767,7 @@
         // Storage keys
         const STORAGE_KEY = 'preserver_data';
         const USER_KEY = 'preserver_user';
+        const DRAFT_KEY = 'preserver_drafts';
 
         // Initialize
         document.addEventListener('DOMContentLoaded', async () => {
@@ -781,6 +789,8 @@
                     submitAnswer();
                 }
             });
+
+            document.getElementById('answer-input').addEventListener('input', saveCurrentDraft);
             
             // Add Escape key to skip (only when answer textarea is focused)
             document.getElementById('answer-input').addEventListener('keydown', (e) => {
@@ -1040,6 +1050,64 @@
             saveStorageData(data);
         }
 
+        function getDraftData() {
+            try {
+                const data = localStorage.getItem(DRAFT_KEY);
+                return data ? JSON.parse(data) : {};
+            } catch {
+                return {};
+            }
+        }
+
+        function saveDraftData(data) {
+            localStorage.setItem(DRAFT_KEY, JSON.stringify(data));
+        }
+
+        function updateDraftStatus(message = '') {
+            const status = document.getElementById('draft-status');
+            if (status) status.textContent = message;
+        }
+
+        function saveCurrentDraft() {
+            if (!currentUser || !currentCategory || !currentQid) return;
+
+            const answerInput = document.getElementById('answer-input');
+            const data = getDraftData();
+            if (!data[currentUser]) data[currentUser] = {};
+            if (!data[currentUser][currentCategory]) data[currentUser][currentCategory] = {};
+
+            const draft = answerInput.value;
+            if (draft.trim()) {
+                data[currentUser][currentCategory][currentQid] = draft;
+                updateDraftStatus('Draft saved locally in this browser.');
+            } else if (data[currentUser][currentCategory][currentQid]) {
+                delete data[currentUser][currentCategory][currentQid];
+                updateDraftStatus('');
+            }
+
+            saveDraftData(data);
+        }
+
+        function restoreCurrentDraft() {
+            if (!currentUser || !currentCategory || !currentQid) return;
+
+            const data = getDraftData();
+            const draft = data[currentUser]?.[currentCategory]?.[currentQid] || '';
+            document.getElementById('answer-input').value = draft;
+            updateDraftStatus(draft ? 'Restored a local draft for this prompt.' : '');
+        }
+
+        function clearCurrentDraft() {
+            if (!currentUser || !currentCategory || !currentQid) return;
+
+            const data = getDraftData();
+            if (data[currentUser]?.[currentCategory]?.[currentQid]) {
+                delete data[currentUser][currentCategory][currentQid];
+                saveDraftData(data);
+            }
+            updateDraftStatus('');
+        }
+
         function startSession() {
             const username = document.getElementById('username-input').value.trim();
             if (!username) {
@@ -1182,7 +1250,7 @@
                 document.getElementById('question-category').textContent = 
                     `📂 ${formatCategoryName(selected.category)}`;
                 document.getElementById('question-text').textContent = selected.question;
-                document.getElementById('answer-input').value = '';
+                restoreCurrentDraft();
                 document.getElementById('question-card').classList.remove('hidden');
                 document.getElementById('answer-section').classList.remove('hidden');
                 document.getElementById('complete-card').classList.add('hidden');
@@ -1196,6 +1264,7 @@
             document.getElementById('question-card').classList.add('hidden');
             document.getElementById('answer-section').classList.add('hidden');
             document.getElementById('complete-card').classList.remove('hidden');
+            updateDraftStatus('');
         }
 
         function submitAnswer() {
@@ -1210,6 +1279,7 @@
             }
 
             saveAnswer(currentCategory, currentQid, currentQuestion, answer);
+            clearCurrentDraft();
             showNotification('Answer saved!', 'success');
             updateProgress();
             loadNextQuestion();
@@ -1256,7 +1326,7 @@
                 document.getElementById('question-category').textContent = 
                     `📂 ${formatCategoryName(selected.category)}`;
                 document.getElementById('question-text').textContent = selected.question;
-                document.getElementById('answer-input').value = '';
+                restoreCurrentDraft();
                 return;
             }
 

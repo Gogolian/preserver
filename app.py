@@ -222,7 +222,8 @@ class PreserverApp:
     def get_all_answers(self, username: str) -> List[Answer]:
         """Get all answers for a user."""
         answers = []
-        answers_dir = ANSWERS_DIR_TEMPLATE.parent / f"data-{username}"
+        safe_username = _safe_path_segment(username)
+        answers_dir = ANSWERS_DIR_TEMPLATE.parent / f"data-{safe_username}"
         
         if not answers_dir.exists():
             return answers
@@ -266,21 +267,22 @@ class PreserverApp:
         
         EXPORTS_DIR.mkdir(parents=True, exist_ok=True)
         timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+        safe_username = _safe_path_segment(username)
         
         if format_type == "jsonl":
-            export_path = EXPORTS_DIR / f"{username}_training_data_{timestamp}.jsonl"
+            export_path = EXPORTS_DIR / f"{safe_username}_training_data_{timestamp}.jsonl"
             with open(export_path, "w", encoding="utf-8") as f:
                 for answer in answers:
                     f.write(json.dumps(answer.to_llm_format(), ensure_ascii=False) + "\n")
         
         elif format_type == "conversation":
-            export_path = EXPORTS_DIR / f"{username}_conversations_{timestamp}.jsonl"
+            export_path = EXPORTS_DIR / f"{safe_username}_conversations_{timestamp}.jsonl"
             with open(export_path, "w", encoding="utf-8") as f:
                 for answer in answers:
                     f.write(json.dumps(answer.to_conversation_format(), ensure_ascii=False) + "\n")
         
         else:  # json
-            export_path = EXPORTS_DIR / f"{username}_all_data_{timestamp}.json"
+            export_path = EXPORTS_DIR / f"{safe_username}_all_data_{timestamp}.json"
             with open(export_path, "w", encoding="utf-8") as f:
                 json.dump({
                     "username": username,
@@ -368,11 +370,14 @@ WELCOME_TEXT = """# 🧠 Welcome to Preserver
 **Preserver** helps you create a digital twin of yourself by gathering your thoughts, 
 memories, preferences, and perspectives.
 
+> Take it one prompt at a time. Short notes, long stories, unfinished thoughts, and
+> memories you want to revisit later are all useful.
+
 ### How it works:
-1. Enter your username below
-2. Answer questions about yourself
-3. Your data is stored **locally** - you own it completely
-4. Export anytime in LLM-ready formats
+1. **Choose a local username** to start or continue
+2. **Answer at your own pace** across life categories
+3. **Keep ownership** because your data is stored locally
+4. **Export anytime** in LLM-ready formats
 
 ### Privacy First:
 All your data stays on your machine. Nothing is sent to any server.
@@ -693,6 +698,23 @@ custom_css = """
     border-radius: 14px;
     border: 1px solid #e5d8ff;
 }
+.welcome-note {
+    padding: 18px;
+    border-radius: 16px;
+    background: linear-gradient(135deg, #fff8e8 0%, #f3edff 100%);
+    border: 1px solid #eadcff;
+    box-shadow: 0 12px 30px rgba(95, 124, 226, 0.12);
+}
+.guidance-card {
+    padding: 16px;
+    border-radius: 14px;
+    background: #fff;
+    border: 1px solid #ece6f5;
+    box-shadow: 0 10px 24px rgba(54, 52, 82, 0.08);
+}
+.guidance-card strong {
+    color: #5f7ce2;
+}
 .gradio-container {
     background:
         radial-gradient(circle at top left, rgba(95, 124, 226, 0.16), transparent 34rem),
@@ -721,6 +743,10 @@ with gr.Blocks() as app:
         # Welcome Panel
         with gr.Column(visible=True) as welcome_panel:
             gr.Markdown(WELCOME_TEXT)
+            gr.Markdown(
+                "✨ **Friendly tip:** You do not need perfect answers. Capture what feels true today, then come back later.",
+                elem_classes=["welcome-note"]
+            )
             
             with gr.Row():
                 username_input = gr.Textbox(
@@ -761,9 +787,13 @@ with gr.Blocks() as app:
                     with gr.Row():
                         with gr.Column(scale=3):
                             question_display = gr.Markdown("", elem_classes=["question-box"])
+                            gr.Markdown(
+                                "**Writing guide:** be specific, include stories when you can, and skip anything you are not ready to answer.",
+                                elem_classes=["guidance-card"]
+                            )
                             answer_input = gr.Textbox(
                                 label="Your Answer",
-                                placeholder="Share your thoughts...",
+                                placeholder="Share a memory, belief, preference, or quick note. You can always add more detail in a later session.",
                                 lines=4
                             )
                             with gr.Row():

@@ -1268,6 +1268,9 @@
         }
 
         function showTab(tabName, clickedTab = null) {
+            const tabPanel = document.getElementById(`tab-${tabName}`);
+            if (!tabPanel) return;
+
             // Update tab buttons
             document.querySelectorAll('.tab').forEach(tab => {
                 tab.classList.remove('active');
@@ -1282,7 +1285,7 @@
             document.querySelectorAll('.tab-content').forEach(content => {
                 content.classList.remove('active');
             });
-            document.getElementById(`tab-${tabName}`).classList.add('active');
+            tabPanel.classList.add('active');
 
             if (tabName === 'progress') {
                 updateCategoryGrid();

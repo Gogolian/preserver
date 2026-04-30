@@ -1129,17 +1129,21 @@
                     }
                 });
 
-                const item = document.createElement('div');
-                item.className = 'category-item';
-                const name = document.createElement('span');
-                name.className = 'category-name';
-                name.textContent = formatCategoryName(category);
-                const progress = document.createElement('span');
-                progress.className = `category-progress ${answered === total ? 'category-complete' : ''}`;
-                progress.textContent = `${answered === total ? '✅ ' : ''}${answered}/${total}`;
-                item.append(name, progress);
-                grid.appendChild(item);
+                grid.appendChild(createCategoryItem(category, answered, total));
             });
+        }
+
+        function createCategoryItem(category, answered, total) {
+            const item = document.createElement('div');
+            item.className = 'category-item';
+            const name = document.createElement('span');
+            name.className = 'category-name';
+            name.textContent = formatCategoryName(category);
+            const progress = document.createElement('span');
+            progress.className = `category-progress ${answered === total ? 'category-complete' : ''}`;
+            progress.textContent = `${answered === total ? '✅ ' : ''}${answered}/${total}`;
+            item.append(name, progress);
+            return item;
         }
 
         function loadNextQuestion(categoryFilter = null) {

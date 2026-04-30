@@ -772,6 +772,7 @@
         const DRAFT_KEY = 'preserver_drafts';
         const DRAFT_SAVED_MESSAGE = 'Draft saved locally in this browser.';
         const DRAFT_RESTORED_MESSAGE = 'Restored a local draft for this prompt.';
+        const DRAFT_AUTOSAVE_DELAY_MS = 300;
 
         // Initialize
         document.addEventListener('DOMContentLoaded', async () => {
@@ -1085,7 +1086,7 @@
             draftSaveTimeout = setTimeout(() => {
                 draftSaveTimeout = null;
                 saveCurrentDraft();
-            }, 300);
+            }, DRAFT_AUTOSAVE_DELAY_MS);
         }
 
         function flushCurrentDraft() {
@@ -1111,6 +1112,8 @@
                 updateDraftStatus(DRAFT_SAVED_MESSAGE);
             } else if (categoryDrafts[currentQid]) {
                 delete categoryDrafts[currentQid];
+                updateDraftStatus('');
+            } else {
                 updateDraftStatus('');
             }
 

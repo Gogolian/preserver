@@ -1035,7 +1035,7 @@
             localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
         }
 
-        function ensureNestedBucket(data, username, category = null) {
+        function getOrCreateCategoryStorage(data, username, category = null) {
             if (!data[username]) data[username] = {};
             if (!category) return data[username];
             if (!data[username][category]) data[username][category] = {};
@@ -1049,7 +1049,7 @@
 
         function saveAnswer(category, qid, question, answer) {
             const data = getStorageData();
-            const categoryAnswers = ensureNestedBucket(data, currentUser, category);
+            const categoryAnswers = getOrCreateCategoryStorage(data, currentUser, category);
             
             categoryAnswers[qid] = {
                 question: question,
@@ -1064,7 +1064,8 @@
             try {
                 const data = localStorage.getItem(DRAFT_KEY);
                 return data ? JSON.parse(data) : {};
-            } catch {
+            } catch (error) {
+                console.warn('Could not read Preserver draft data from localStorage:', error);
                 return {};
             }
         }
@@ -1098,8 +1099,9 @@
             if (!currentUser || !currentCategory || !currentQid) return;
 
             const answerInput = document.getElementById('answer-input');
+            if (!answerInput) return;
             const data = getDraftData();
-            const categoryDrafts = ensureNestedBucket(data, currentUser, currentCategory);
+            const categoryDrafts = getOrCreateCategoryStorage(data, currentUser, currentCategory);
 
             const draft = answerInput.value;
             if (draft.trim()) {
@@ -1118,7 +1120,9 @@
 
             const data = getDraftData();
             const draft = data[currentUser]?.[currentCategory]?.[currentQid] || '';
-            document.getElementById('answer-input').value = draft;
+            const answerInput = document.getElementById('answer-input');
+            if (!answerInput) return;
+            answerInput.value = draft;
             updateDraftStatus(draft ? DRAFT_RESTORED_MESSAGE : '');
         }
 

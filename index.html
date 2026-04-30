@@ -667,9 +667,9 @@
             </div>
 
             <div class="tabs">
-                <button class="tab active" onclick="showTab('questions', this)">📝 Questions</button>
-                <button class="tab" onclick="showTab('progress', this)">📊 Progress</button>
-                <button class="tab" onclick="showTab('export', this)">📤 Export</button>
+                <button class="tab active" data-tab-name="questions" onclick="showTab('questions', this)">📝 Questions</button>
+                <button class="tab" data-tab-name="progress" onclick="showTab('progress', this)">📊 Progress</button>
+                <button class="tab" data-tab-name="export" onclick="showTab('export', this)">📤 Export</button>
             </div>
 
             <!-- Questions Tab -->
@@ -1268,7 +1268,7 @@
             document.querySelectorAll('.tab').forEach(tab => {
                 tab.classList.remove('active');
             });
-            const tabButton = clickedTab || document.querySelector(`.tab[onclick*="'${tabName}'"]`);
+            const tabButton = clickedTab || document.querySelector(`.tab[data-tab-name="${tabName}"]`);
             if (tabButton) {
                 tabButton.classList.add('active');
             }

@@ -9,7 +9,6 @@ License: MIT
 """
 
 import gradio as gr
-import os
 import json
 import datetime
 import random
@@ -74,11 +73,11 @@ def _parse_question_id(question_id: str) -> int:
 
 def _safe_path_segment(value: str) -> str:
     """Return a safe single path segment for local answer storage."""
-    segment = str(value).strip().replace("\x00", "_")
-    for separator in (os.sep, os.altsep):
-        if separator:
-            segment = segment.replace(separator, "_")
-    return "_" if segment in {"", ".", ".."} else segment
+    segment = "".join(
+        char if char.isalnum() or char in {" ", "_", "-", "."} else "_"
+        for char in str(value)
+    ).strip(" .")
+    return segment or "_"
 
 
 class PreserverApp:

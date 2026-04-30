@@ -241,9 +241,17 @@ class TestAnswerSaveAndLoad:
 
             assert os.path.commonpath([str(base_path), str(answer_path.resolve())]) == str(base_path)
             assert ".." not in answer_path.parts
-            assert _safe_path_segment("..") == "_"
         finally:
             app_module.ANSWERS_DIR_TEMPLATE = original_template
+
+    def test_safe_path_segment_edge_cases(self):
+        """Test path segment sanitization covers separators and empty values."""
+        assert _safe_path_segment("..") == "_"
+        assert _safe_path_segment(".") == "_"
+        assert _safe_path_segment("") == "_"
+        assert _safe_path_segment("a/b\\c") == "a_b_c"
+        assert _safe_path_segment("bad\x00name") == "bad_name"
+        assert _safe_path_segment("  .safe name-.  ") == "safe name-"
 
 
 class TestExport:

@@ -73,7 +73,13 @@ def _parse_question_id(question_id: str) -> int:
 
 
 def _safe_path_segment(value: str) -> str:
-    """Return a safe single path segment for local answer storage."""
+    """
+    Return a safe single path segment for local answer storage.
+
+    Path separators, traversal dots, control characters, and other unsafe
+    punctuation are replaced with underscores. Empty or whitespace-only values
+    fall back to "_".
+    """
     segment = "".join(
         char if char.isalnum() or char in {" ", "_", "-"} else "_"
         for char in str(value)

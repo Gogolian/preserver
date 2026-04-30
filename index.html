@@ -772,7 +772,7 @@
         const DRAFT_KEY = 'preserver_drafts';
         const DRAFT_SAVED_MESSAGE = 'Draft saved locally in this browser.';
         const DRAFT_RESTORED_MESSAGE = 'Restored a local draft for this prompt.';
-        const DRAFT_AUTOSAVE_DELAY_MS = 300;
+        const DRAFT_AUTOSAVE_DELAY = 300;
 
         // Initialize
         document.addEventListener('DOMContentLoaded', async () => {
@@ -1086,7 +1086,7 @@
             draftSaveTimeout = setTimeout(() => {
                 draftSaveTimeout = null;
                 saveCurrentDraft();
-            }, DRAFT_AUTOSAVE_DELAY_MS);
+            }, DRAFT_AUTOSAVE_DELAY);
         }
 
         function flushCurrentDraft() {
@@ -1106,7 +1106,8 @@
             const categoryDrafts = getOrCreateCategoryStorage(data, currentUser, currentCategory);
 
             const draft = answerInput.value;
-            if (draft.trim()) {
+            const trimmedDraft = draft.trim();
+            if (trimmedDraft) {
                 // Keep deliberate leading/trailing spaces while treating whitespace-only drafts as empty.
                 categoryDrafts[currentQid] = draft;
                 updateDraftStatus(DRAFT_SAVED_MESSAGE);

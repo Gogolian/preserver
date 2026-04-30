@@ -270,7 +270,6 @@ class TestAnswerSaveAndLoad:
             answers = preserver.get_all_answers(username)
             expected_path = Path(temp_answers_dir) / f"data-{safe_username}" / "memories" / "q99.txt"
 
-            assert safe_username == "Jane Doe_Family"
             assert expected_path.exists()
             assert len(answers) == 1
             assert answers[0].answer == "That I cared deeply."

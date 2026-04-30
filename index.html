@@ -1036,6 +1036,7 @@
         }
 
         function getOrCreateCategoryStorage(data, username, category = null) {
+            // Mutates the provided storage object so callers can save it once.
             if (!data[username]) data[username] = {};
             if (!category) return data[username];
             if (!data[username][category]) data[username][category] = {};
@@ -1105,6 +1106,7 @@
 
             const draft = answerInput.value;
             if (draft.trim()) {
+                // Keep deliberate leading/trailing spaces while treating whitespace-only drafts as empty.
                 categoryDrafts[currentQid] = draft;
                 updateDraftStatus(DRAFT_SAVED_MESSAGE);
             } else if (categoryDrafts[currentQid]) {

@@ -370,7 +370,7 @@ WELCOME_TEXT = """# 🧠 Welcome to Preserver
 **Preserver** helps you create a digital twin of yourself by gathering your thoughts, 
 memories, preferences, and perspectives.
 
-> Take it one prompt at a time. Short notes, long stories, unfinished thoughts, and
+> take it one prompt at a time. Short notes, long stories, unfinished thoughts, and
 > memories you want to revisit later are all useful.
 
 ### How it works:

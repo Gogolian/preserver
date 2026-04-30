@@ -246,12 +246,15 @@ class TestAnswerSaveAndLoad:
 
     def test_safe_path_segment_edge_cases(self):
         """Test path segment sanitization covers separators and empty values."""
+        assert _safe_path_segment("user123") == "user123"
+        assert _safe_path_segment("daily_thoughts") == "daily_thoughts"
+        assert _safe_path_segment("q42") == "q42"
         assert _safe_path_segment("..") == "_"
         assert _safe_path_segment(".") == "_"
         assert _safe_path_segment("") == "_"
         assert _safe_path_segment("a/b\\c") == "a_b_c"
         assert _safe_path_segment("bad\x00name") == "bad_name"
-        assert _safe_path_segment("  .safe name-.  ") == "safe name-"
+        assert _safe_path_segment("  .safe name-.  ") == "_safe name-_"
 
 
 class TestExport:

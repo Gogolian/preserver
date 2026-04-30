@@ -1268,7 +1268,8 @@
             document.querySelectorAll('.tab').forEach(tab => {
                 tab.classList.remove('active');
             });
-            const tabButton = clickedTab || document.querySelector(`.tab[data-tab-name="${tabName}"]`);
+            const tabButton = clickedTab || Array.from(document.querySelectorAll('.tab'))
+                .find(tab => tab.dataset.tabName === tabName);
             if (tabButton) {
                 tabButton.classList.add('active');
             }

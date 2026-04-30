@@ -74,9 +74,11 @@ def _parse_question_id(question_id: str) -> int:
 def _safe_path_segment(value: str) -> str:
     """Return a safe single path segment for local answer storage."""
     segment = "".join(
-        char if char.isalnum() or char in {" ", "_", "-", "."} else "_"
+        char if char.isalnum() or char in {" ", "_", "-"} else "_"
         for char in str(value)
-    ).strip(" .")
+    ).strip()
+    while "__" in segment:
+        segment = segment.replace("__", "_")
     return segment or "_"
 
 

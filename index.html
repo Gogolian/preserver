@@ -6,18 +6,20 @@
     <title>Preserver - Your Personal Digital Twin Creator</title>
     <style>
         :root {
-            /* Calm, cozy color palette - muted, warm tones */
-            --primary: #8b9dc3;        /* Soft muted blue */
-            --primary-dark: #6b7fa3;   /* Darker muted blue */
-            --secondary: #9d8b9f;      /* Soft muted purple */
-            --success: #7d9b7d;        /* Calm sage green */
-            --warning: #c4a57b;        /* Warm muted orange */
-            --bg: #f5f3f0;             /* Warm off-white */
-            --card: #ffffff;           /* Clean white */
-            --text: #4a4a4a;           /* Soft dark gray */
-            --text-muted: #7a7a7a;     /* Muted gray */
-            --border: #e0ddd9;         /* Warm light gray */
-            --shadow: 0 2px 4px rgba(0, 0, 0, 0.08);  /* Softer shadow */
+            --primary: #5f7ce2;
+            --primary-dark: #415dc4;
+            --secondary: #9c5cc6;
+            --accent: #f5b461;
+            --success: #2f9c72;
+            --warning: #c47d2f;
+            --bg: #fbfaf8;
+            --card: rgba(255, 255, 255, 0.88);
+            --text: #232330;
+            --text-muted: #6f7082;
+            --border: #e9e4ee;
+            --shadow: 0 20px 60px rgba(54, 52, 82, 0.12);
+            --soft-shadow: 0 10px 30px rgba(54, 52, 82, 0.08);
+            --radius: 22px;
         }
 
         * {
@@ -28,86 +30,162 @@
 
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
-            background: var(--bg);
+            background:
+                radial-gradient(circle at top left, rgba(95, 124, 226, 0.20), transparent 32rem),
+                radial-gradient(circle at top right, rgba(156, 92, 198, 0.18), transparent 28rem),
+                linear-gradient(180deg, #fffefe 0%, var(--bg) 45%, #f4f0fb 100%);
             color: var(--text);
             line-height: 1.6;
             min-height: 100vh;
         }
 
         .container {
-            max-width: 900px;
+            max-width: 1080px;
             margin: 0 auto;
-            padding: 20px;
+            padding: 24px;
         }
 
         header {
-            text-align: center;
-            padding: 40px 20px;
-            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            max-width: 1120px;
+            margin: 18px auto 18px;
+            padding: 56px 32px;
+            background:
+                linear-gradient(135deg, rgba(95, 124, 226, 0.95) 0%, rgba(156, 92, 198, 0.95) 100%),
+                url("data:image/svg+xml,%3Csvg width='84' height='84' viewBox='0 0 84 84' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='white' fill-opacity='0.12'%3E%3Ccircle cx='12' cy='12' r='3'/%3E%3Ccircle cx='60' cy='30' r='2'/%3E%3Ccircle cx='36' cy='64' r='2.5'/%3E%3C/g%3E%3C/svg%3E");
             color: white;
-            margin-bottom: 30px;
-            border-radius: 0 0 20px 20px;
-            opacity: 0.95;  /* Slightly softer */
+            border-radius: 32px;
+            box-shadow: var(--shadow);
+            position: relative;
+            overflow: hidden;
+        }
+
+        header::after {
+            content: "";
+            position: absolute;
+            inset: auto -10% -45% 45%;
+            height: 220px;
+            background: rgba(255, 255, 255, 0.13);
+            transform: rotate(-12deg);
+            border-radius: 999px;
+        }
+
+        .hero-content {
+            position: relative;
+            z-index: 1;
+            max-width: 780px;
+        }
+
+        .hero-kicker {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 14px;
+            margin-bottom: 18px;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.18);
+            font-size: 14px;
+            font-weight: 700;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
         }
 
         header h1 {
-            font-size: 2.5em;
+            font-size: clamp(2.4rem, 7vw, 4.8rem);
             margin-bottom: 10px;
-            font-weight: 600;  /* Slightly lighter */
+            font-weight: 800;
+            letter-spacing: -0.05em;
+            line-height: 0.95;
         }
 
         header p {
+            opacity: 0.95;
+            font-size: clamp(1.05rem, 2vw, 1.3rem);
+            max-width: 680px;
+        }
+
+        .hero-stats {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 12px;
+            margin-top: 28px;
+        }
+
+        .hero-stat {
+            padding: 16px;
+            background: rgba(255, 255, 255, 0.16);
+            border: 1px solid rgba(255, 255, 255, 0.22);
+            border-radius: 18px;
+            backdrop-filter: blur(10px);
+        }
+
+        .hero-stat strong {
+            display: block;
+            font-size: 1.35rem;
+        }
+
+        .hero-stat span {
+            font-size: 0.9rem;
             opacity: 0.9;
-            font-size: 1.1em;
         }
 
         .card {
             background: var(--card);
-            border-radius: 12px;
-            padding: 24px;
-            margin-bottom: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.72);
+            border-radius: var(--radius);
+            padding: 28px;
+            margin-bottom: 22px;
             box-shadow: var(--shadow);
+            backdrop-filter: blur(14px);
         }
 
         .welcome-card {
-            text-align: center;
+            display: grid;
+            grid-template-columns: minmax(0, 1.1fr) minmax(280px, 0.9fr);
+            gap: 30px;
+            align-items: center;
         }
 
         .welcome-card h2 {
-            margin-bottom: 20px;
-            color: var(--primary);
+            margin-bottom: 14px;
+            color: var(--text);
+            font-size: clamp(1.8rem, 4vw, 2.8rem);
+            line-height: 1.05;
         }
 
         .welcome-card ul {
-            text-align: left;
-            margin: 20px auto;
-            max-width: 400px;
-            padding-left: 30px;
+            list-style: none;
+            margin: 24px 0;
+            display: grid;
+            gap: 12px;
         }
 
         .welcome-card li {
-            margin-bottom: 10px;
+            padding: 14px 16px;
+            background: #f7f4ff;
+            border: 1px solid #e7ddff;
+            border-radius: 16px;
         }
 
         .input-group {
             display: flex;
-            gap: 10px;
-            max-width: 400px;
-            margin: 20px auto;
+            gap: 12px;
+            margin: 22px 0 0;
         }
 
         input[type="text"], textarea {
             flex: 1;
-            padding: 12px 16px;
+            padding: 14px 16px;
             border: 2px solid var(--border);
-            border-radius: 8px;
+            border-radius: 14px;
             font-size: 16px;
+            background: #fff;
             transition: border-color 0.2s;
         }
 
         input[type="text"]:focus, textarea:focus {
             outline: none;
             border-color: var(--primary);
+            box-shadow: 0 0 0 4px rgba(95, 124, 226, 0.14);
         }
 
         textarea {
@@ -117,31 +195,33 @@
         }
 
         button {
-            padding: 12px 24px;
+            padding: 13px 24px;
             border: none;
-            border-radius: 8px;
+            border-radius: 14px;
             font-size: 16px;
             cursor: pointer;
             transition: all 0.2s;
+            font-weight: 700;
         }
 
         .btn-primary {
             background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
             color: white;
+            box-shadow: 0 12px 28px rgba(95, 124, 226, 0.28);
         }
 
         .btn-primary:hover {
-            transform: translateY(-1px);  /* Gentler hover effect */
-            box-shadow: 0 3px 8px rgba(139, 157, 195, 0.3);  /* Softer shadow */
+            transform: translateY(-2px);
+            box-shadow: 0 16px 34px rgba(95, 124, 226, 0.34);
         }
 
         .btn-secondary {
-            background: var(--border);
+            background: #f0edf6;
             color: var(--text);
         }
 
         .btn-secondary:hover {
-            background: #d0cdc9;  /* Slightly darker on hover */
+            background: #e3deec;
         }
 
         .hidden {
@@ -149,17 +229,18 @@
         }
 
         .progress-bar {
-            background: var(--border);
-            border-radius: 10px;
-            height: 20px;
+            background: #eee9f5;
+            border-radius: 999px;
+            height: 16px;
             overflow: hidden;
             margin-bottom: 10px;
         }
 
         .progress-fill {
-            background: linear-gradient(90deg, var(--success), #6d8b6d);  /* Softer green gradient */
+            background: linear-gradient(90deg, var(--success), var(--accent));
             height: 100%;
             transition: width 0.5s ease;
+            border-radius: inherit;
         }
 
         .progress-text {
@@ -169,11 +250,14 @@
         }
 
         .question-card {
-            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            background:
+                linear-gradient(135deg, rgba(95, 124, 226, 0.96) 0%, rgba(156, 92, 198, 0.96) 100%),
+                radial-gradient(circle at 80% 20%, rgba(255,255,255,0.35), transparent 16rem);
             color: white;
-            border-radius: 12px;
-            padding: 30px;
-            margin-bottom: 20px;
+            border-radius: 24px;
+            padding: 34px;
+            margin-bottom: 22px;
+            box-shadow: var(--shadow);
         }
 
         .question-category {
@@ -185,8 +269,9 @@
         }
 
         .question-text {
-            font-size: 1.3em;
+            font-size: clamp(1.25rem, 3vw, 1.75rem);
             line-height: 1.5;
+            font-weight: 700;
         }
 
         .button-group {
@@ -198,25 +283,31 @@
 
         .tabs {
             display: flex;
-            border-bottom: 2px solid var(--border);
-            margin-bottom: 20px;
+            gap: 8px;
+            background: rgba(255, 255, 255, 0.7);
+            border: 1px solid var(--border);
+            padding: 8px;
+            border-radius: 18px;
+            margin-bottom: 22px;
+            box-shadow: var(--soft-shadow);
         }
 
         .tab {
             padding: 12px 24px;
             border: none;
-            background: none;
+            background: transparent;
             color: var(--text-muted);
             font-size: 16px;
             cursor: pointer;
-            border-bottom: 3px solid transparent;
-            margin-bottom: -2px;
+            border-radius: 12px;
             transition: all 0.2s;
+            flex: 1;
         }
 
         .tab.active {
-            color: var(--primary);
-            border-bottom-color: var(--primary);
+            color: white;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            box-shadow: 0 8px 20px rgba(95, 124, 226, 0.22);
         }
 
         .tab:hover {
@@ -233,18 +324,20 @@
 
         .category-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-            gap: 10px;
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            gap: 12px;
             margin-top: 20px;
         }
 
         .category-item {
-            padding: 12px 16px;
-            background: var(--bg);
-            border-radius: 8px;
+            padding: 16px;
+            background: #fff;
+            border: 1px solid var(--border);
+            border-radius: 16px;
             display: flex;
             justify-content: space-between;
             align-items: center;
+            box-shadow: var(--soft-shadow);
         }
 
         .category-name {
@@ -263,7 +356,7 @@
         select {
             padding: 10px 16px;
             border: 2px solid var(--border);
-            border-radius: 8px;
+            border-radius: 14px;
             font-size: 16px;
             background: white;
             cursor: pointer;
@@ -280,11 +373,13 @@
         }
 
         .user-badge {
-            background: var(--primary);
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
             color: white;
-            padding: 6px 16px;
+            padding: 8px 16px;
             border-radius: 20px;
             font-size: 14px;
+            font-weight: 700;
+            box-shadow: 0 10px 22px rgba(95, 124, 226, 0.24);
         }
 
         .export-options {
@@ -296,19 +391,21 @@
         .export-option {
             padding: 20px;
             border: 2px solid var(--border);
-            border-radius: 8px;
+            border-radius: 16px;
             cursor: pointer;
             transition: all 0.2s;
+            background: #fff;
         }
 
         .export-option:hover {
             border-color: var(--primary);
-            background: #f0f4ff;
+            background: #f7f4ff;
         }
 
         .export-option.selected {
             border-color: var(--primary);
-            background: #f0f4ff;
+            background: #f7f4ff;
+            box-shadow: var(--soft-shadow);
         }
 
         .export-option h3 {
@@ -328,7 +425,7 @@
             padding: 16px 24px;
             background: var(--success);
             color: white;
-            border-radius: 8px;
+            border-radius: 16px;
             box-shadow: var(--shadow);
             animation: slideIn 0.3s ease;
             z-index: 1000;
@@ -372,12 +469,86 @@
             text-decoration: none;
         }
 
+        .workflow-panel {
+            background: linear-gradient(180deg, #ffffff 0%, #faf7ff 100%);
+            border: 1px solid var(--border);
+            border-radius: 22px;
+            padding: 22px;
+            box-shadow: var(--soft-shadow);
+        }
+
+        .workflow-panel h3 {
+            margin-bottom: 16px;
+        }
+
+        .step-list {
+            display: grid;
+            gap: 12px;
+        }
+
+        .step {
+            display: flex;
+            gap: 12px;
+            align-items: flex-start;
+        }
+
+        .step-number {
+            display: inline-grid;
+            place-items: center;
+            flex: 0 0 32px;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: #fff;
+            font-weight: 800;
+        }
+
+        .step strong {
+            display: block;
+        }
+
+        .import-panel {
+            margin-top: 26px;
+            padding: 20px;
+            background: #fffaf1;
+            border: 1px solid #f2d8a5;
+            border-radius: 18px;
+        }
+
+        .import-controls {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            margin-top: 12px;
+        }
+
         @media (max-width: 600px) {
             header h1 {
                 font-size: 1.8em;
             }
 
-            .input-group {
+            header {
+                margin: 10px;
+                padding: 36px 22px;
+                border-radius: 24px;
+            }
+
+            .container {
+                padding: 14px;
+            }
+
+            .welcome-card {
+                grid-template-columns: 1fr;
+            }
+
+            .hero-stats {
+                grid-template-columns: 1fr;
+            }
+
+            .input-group,
+            .import-controls,
+            .tabs {
                 flex-direction: column;
             }
 
@@ -394,44 +565,85 @@
 </head>
 <body>
     <header>
-        <h1>🧠 Preserver</h1>
-        <p>Create your digital twin by preserving your thoughts, memories, and personality</p>
+        <div class="hero-content">
+            <div class="hero-kicker">Private · Guided · LLM-ready</div>
+            <h1>🧠 Preserver</h1>
+            <p>Create your digital twin through a thoughtful, step-by-step journal that keeps every answer on your device.</p>
+            <div class="hero-stats" aria-label="Preserver highlights">
+                <div class="hero-stat">
+                    <strong>990+</strong>
+                    <span>prompts</span>
+                </div>
+                <div class="hero-stat">
+                    <strong>33</strong>
+                    <span>life areas</span>
+                </div>
+                <div class="hero-stat">
+                    <strong>100%</strong>
+                    <span>local storage</span>
+                </div>
+            </div>
+        </div>
     </header>
 
     <div class="container">
         <!-- Welcome Screen -->
         <div id="welcome-screen">
             <div class="card welcome-card">
-                <h2>Welcome to Preserver</h2>
-                <p>Preserver helps you create a digital twin of yourself by gathering your thoughts, memories, preferences, and perspectives.</p>
-                
-                <ul>
-                    <li>🔒 <strong>Privacy-First:</strong> All data stays in your browser</li>
-                    <li>🧠 <strong>Comprehensive:</strong> 990+ thoughtful questions</li>
-                    <li>💾 <strong>LLM-Ready:</strong> Export for AI training</li>
-                    <li>🔄 <strong>Persistent:</strong> Continue anytime</li>
-                </ul>
+                <div>
+                    <h2>Build a richer record of who you are.</h2>
+                    <p>Preserver turns a big life archive into small, approachable prompts you can answer at your own pace.</p>
+                    
+                    <ul>
+                        <li>🔒 <strong>Privacy-first:</strong> everything stays in your browser</li>
+                        <li>🧠 <strong>Guided:</strong> clear prompts across memory, beliefs, relationships, and more</li>
+                        <li>💾 <strong>LLM-ready:</strong> export clean JSON or JSONL when you choose</li>
+                        <li>🔄 <strong>Persistent:</strong> come back anytime and keep going</li>
+                    </ul>
 
-                <div class="input-group">
-                    <input type="text" id="username-input" placeholder="Enter your username..." />
-                    <button class="btn-primary" onclick="startSession()">🚀 Start</button>
-                </div>
-                
-                <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid var(--border);">
-                    <h3 style="font-size: 1.2em; margin-bottom: 10px;">📥 Import Previous Session</h3>
-                    <p style="font-size: 0.9em; color: var(--text-muted); margin-bottom: 10px;">
-                        Have an exported JSON file? Upload it to continue where you left off.
-                    </p>
-                    <div style="display: flex; gap: 10px; align-items: center; justify-content: center;">
-                        <input type="file" id="import-file" accept=".json" style="flex: 1; max-width: 300px;">
-                        <button class="btn-secondary" onclick="importData()">📤 Import</button>
+                    <div class="input-group">
+                        <input type="text" id="username-input" placeholder="Choose a local username..." />
+                        <button class="btn-primary" onclick="startSession()">Start preserving</button>
                     </div>
-                    <div id="import-status" style="margin-top: 10px; font-size: 0.9em; text-align: center;"></div>
+                    
+                    <div class="import-panel">
+                        <h3>📥 Continue from an export</h3>
+                        <p>
+                            Upload a previous complete JSON export to resume without overwriting existing answers.
+                        </p>
+                        <div class="import-controls">
+                            <input type="file" id="import-file" accept=".json">
+                            <button class="btn-secondary" onclick="importData()">Import JSON</button>
+                        </div>
+                        <div id="import-status" style="margin-top: 10px; font-size: 0.9em;"></div>
+                    </div>
+
+                    <p style="color: var(--text-muted); font-size: 14px; margin-top: 20px;">
+                        Your data is stored only in this browser's local storage.
+                    </p>
                 </div>
 
-                <p style="color: var(--text-muted); font-size: 14px; margin-top: 20px;">
-                    Your data is stored only in this browser's local storage.
-                </p>
+                <aside class="workflow-panel" aria-label="How Preserver works">
+                    <h3>How the journey flows</h3>
+                    <div class="step-list">
+                        <div class="step">
+                            <span class="step-number">1</span>
+                            <div><strong>Pick a focus</strong><span>Answer everything or filter to one category.</span></div>
+                        </div>
+                        <div class="step">
+                            <span class="step-number">2</span>
+                            <div><strong>Respond naturally</strong><span>Short notes or long stories both work.</span></div>
+                        </div>
+                        <div class="step">
+                            <span class="step-number">3</span>
+                            <div><strong>Track progress</strong><span>See which life areas still need attention.</span></div>
+                        </div>
+                        <div class="step">
+                            <span class="step-number">4</span>
+                            <div><strong>Export anytime</strong><span>Download data for backup or model training.</span></div>
+                        </div>
+                    </div>
+                </aside>
             </div>
         </div>
 
@@ -455,9 +667,9 @@
             </div>
 
             <div class="tabs">
-                <button class="tab active" onclick="showTab('questions')">📝 Questions</button>
-                <button class="tab" onclick="showTab('progress')">📊 Progress</button>
-                <button class="tab" onclick="showTab('export')">📤 Export</button>
+                <button class="tab active" onclick="showTab('questions', this)">📝 Questions</button>
+                <button class="tab" onclick="showTab('progress', this)">📊 Progress</button>
+                <button class="tab" onclick="showTab('export', this)">📤 Export</button>
             </div>
 
             <!-- Questions Tab -->
@@ -919,12 +1131,13 @@
 
                 const item = document.createElement('div');
                 item.className = 'category-item';
-                item.innerHTML = `
-                    <span class="category-name">${formatCategoryName(category)}</span>
-                    <span class="category-progress ${answered === total ? 'category-complete' : ''}">
-                        ${answered === total ? '✅' : ''} ${answered}/${total}
-                    </span>
-                `;
+                const name = document.createElement('span');
+                name.className = 'category-name';
+                name.textContent = formatCategoryName(category);
+                const progress = document.createElement('span');
+                progress.className = `category-progress ${answered === total ? 'category-complete' : ''}`;
+                progress.textContent = `${answered === total ? '✅ ' : ''}${answered}/${total}`;
+                item.append(name, progress);
                 grid.appendChild(item);
             });
         }
@@ -1050,12 +1263,15 @@
             loadNextQuestion();
         }
 
-        function showTab(tabName) {
+        function showTab(tabName, clickedTab = null) {
             // Update tab buttons
             document.querySelectorAll('.tab').forEach(tab => {
                 tab.classList.remove('active');
             });
-            event.target.classList.add('active');
+            const tabButton = clickedTab || document.querySelector(`.tab[onclick*="'${tabName}'"]`);
+            if (tabButton) {
+                tabButton.classList.add('active');
+            }
 
             // Update tab content
             document.querySelectorAll('.tab-content').forEach(content => {

@@ -20,9 +20,10 @@ from collections import defaultdict
 
 
 # Configuration
-QUESTIONS_DIR = Path("questions")
-ANSWERS_DIR_TEMPLATE = Path("answers/data-{}")
-EXPORTS_DIR = Path("exports")
+BASE_DIR = Path(__file__).resolve().parent
+QUESTIONS_DIR = BASE_DIR / "questions"
+ANSWERS_DIR_TEMPLATE = BASE_DIR / "answers/data-{}"
+EXPORTS_DIR = BASE_DIR / "exports"
 
 
 @dataclass
@@ -69,6 +70,15 @@ def _parse_question_id(question_id: str) -> int:
         return int(question_id.replace("q", ""))
     except (ValueError, AttributeError):
         return 0
+
+
+def _safe_path_segment(value: str) -> str:
+    """Return a safe single path segment for local answer storage."""
+    segment = str(value).strip().replace("\x00", "_")
+    for separator in (os.sep, os.altsep):
+        if separator:
+            segment = segment.replace(separator, "_")
+    return "_" if segment in {"", ".", ".."} else segment
 
 
 class PreserverApp:
@@ -141,7 +151,10 @@ class PreserverApp:
     
     def _get_answer_path(self, username: str, category: str, question_id: str) -> Path:
         """Get the path where an answer should be stored."""
-        return ANSWERS_DIR_TEMPLATE.parent / f"data-{username}" / category / f"{question_id}.txt"
+        safe_username = _safe_path_segment(username)
+        safe_category = _safe_path_segment(category)
+        safe_question_id = _safe_path_segment(question_id)
+        return ANSWERS_DIR_TEMPLATE.parent / f"data-{safe_username}" / safe_category / f"{safe_question_id}.txt"
     
     def get_next_question(self, username: str, category: Optional[str] = None, randomize: bool = True) -> Optional[Tuple[str, str, str]]:
         """
@@ -649,26 +662,40 @@ def on_import_data(username_input: str, filepath: str) -> str:
 # Build Gradio Interface
 custom_css = """
 #main-container {
-    max-width: 900px;
+    max-width: 1040px;
     margin: 0 auto;
 }
 .question-box {
-    font-size: 1.1em;
-    padding: 20px;
-    background: linear-gradient(135deg, #8b9dc3 0%, #9d8b9f 100%);
+    font-size: 1.12em;
+    padding: 24px;
+    background: linear-gradient(135deg, #5f7ce2 0%, #9c5cc6 100%);
     color: white;
-    border-radius: 10px;
+    border-radius: 18px;
     margin-bottom: 15px;
+    box-shadow: 0 18px 45px rgba(95, 124, 226, 0.24);
 }
 .progress-bar {
     font-size: 1.2em;
     font-weight: bold;
-    color: #7d9b7d;
+    color: #34785f;
 }
 .category-stats {
-    background: #f5f3f0;
-    padding: 15px;
-    border-radius: 8px;
+    background: #f7f2ff;
+    padding: 16px;
+    border-radius: 14px;
+    border: 1px solid #e5d8ff;
+}
+.gradio-container {
+    background:
+        radial-gradient(circle at top left, rgba(95, 124, 226, 0.16), transparent 34rem),
+        radial-gradient(circle at top right, rgba(156, 92, 198, 0.14), transparent 30rem),
+        #fbfaf8;
+}
+#main-container > .gr-markdown:first-child {
+    text-align: center;
+}
+.gr-button-primary {
+    box-shadow: 0 10px 24px rgba(95, 124, 226, 0.25);
 }
 """
 
@@ -681,7 +708,7 @@ with gr.Blocks() as app:
     
     with gr.Column(elem_id="main-container"):
         gr.Markdown("# 🧠 Preserver")
-        gr.Markdown("*Create your digital twin by preserving your thoughts, memories, and personality.*")
+        gr.Markdown("### A guided, private workbook for preserving your thoughts, memories, and personality.")
         
         # Welcome Panel
         with gr.Column(visible=True) as welcome_panel:

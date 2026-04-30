@@ -13,7 +13,7 @@ import os
 # Add parent directory to path for imports
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from app import PreserverApp, Answer, QUESTIONS_DIR
+from app import PreserverApp, Answer, QUESTIONS_DIR, _safe_path_segment
 
 
 class TestAnswer:
@@ -228,6 +228,23 @@ class TestAnswerSaveAndLoad:
         finally:
             app_module.ANSWERS_DIR_TEMPLATE = original_template
 
+    def test_answer_path_sanitizes_user_controlled_segments(self, temp_answers_dir):
+        """Test answer paths cannot escape the answers directory."""
+        import app as app_module
+        original_template = app_module.ANSWERS_DIR_TEMPLATE
+        app_module.ANSWERS_DIR_TEMPLATE = Path(temp_answers_dir) / "data-{}"
+
+        try:
+            preserver = PreserverApp()
+            answer_path = preserver._get_answer_path("../evil", "../category", "../q1")
+            base_path = Path(temp_answers_dir).resolve()
+
+            assert os.path.commonpath([str(base_path), str(answer_path.resolve())]) == str(base_path)
+            assert ".." not in answer_path.parts
+            assert _safe_path_segment("..") == "_"
+        finally:
+            app_module.ANSWERS_DIR_TEMPLATE = original_template
+
 
 class TestExport:
     """Tests for export functionality."""
@@ -424,5 +441,3 @@ class TestRandomness:
 
 if __name__ == "__main__":
     pytest.main([__file__, "-v"])
-
-

@@ -248,6 +248,35 @@ class TestAnswerSaveAndLoad:
         finally:
             app_module.ANSWERS_DIR_TEMPLATE = original_template
 
+    def test_get_all_answers_uses_sanitized_username(self, temp_answers_dir):
+        """Test answers saved for friendly usernames can be loaded again."""
+        import app as app_module
+        original_template = app_module.ANSWERS_DIR_TEMPLATE
+        app_module.ANSWERS_DIR_TEMPLATE = Path(temp_answers_dir) / "data-{}"
+
+        try:
+            preserver = PreserverApp()
+            username = "Jane Doe/Family"
+            safe_username = _safe_path_segment(username)
+
+            assert preserver.save_answer(
+                username=username,
+                question="What should people remember about you?",
+                answer="That I cared deeply.",
+                category="memories",
+                question_id="q99"
+            ) is True
+
+            answers = preserver.get_all_answers(username)
+            expected_path = Path(temp_answers_dir) / f"data-{safe_username}" / "memories" / "q99.txt"
+
+            assert expected_path.exists()
+            assert len(answers) == 1
+            assert answers[0].answer == "That I cared deeply."
+            assert answers[0].category == "memories"
+        finally:
+            app_module.ANSWERS_DIR_TEMPLATE = original_template
+
     def test_safe_path_segment_edge_cases(self):
         """Test path segment sanitization covers separators and empty values."""
         assert _safe_path_segment("user123") == "user123"

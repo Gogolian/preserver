@@ -194,6 +194,13 @@
             resize: vertical;
         }
 
+        .answer-tips,
+        .draft-status {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-top: 5px;
+        }
+
         button {
             padding: 13px 24px;
             border: none;
@@ -681,9 +688,10 @@
 
                 <div class="card" id="answer-section">
                     <textarea id="answer-input" placeholder="Share your thoughts..."></textarea>
-                    <p style="font-size: 12px; color: var(--text-muted); margin-top: 5px;">
+                    <p class="answer-tips">
                         💡 Tip: Press Ctrl+Enter (⌘+Enter on Mac) to save • Press Esc to skip
                     </p>
+                    <p class="draft-status" id="draft-status" aria-live="polite"></p>
                     <div class="button-group">
                         <button class="btn-primary" onclick="submitAnswer()">💾 Save & Next</button>
                         <button class="btn-secondary" onclick="skipQuestion()">⏭️ Skip</button>
@@ -756,10 +764,15 @@
         let currentCategory = null;
         let currentQid = null;
         let selectedExport = 'jsonl';
+        let draftSaveTimeout = null;
 
         // Storage keys
         const STORAGE_KEY = 'preserver_data';
         const USER_KEY = 'preserver_user';
+        const DRAFT_KEY = 'preserver_drafts';
+        const DRAFT_SAVED_MESSAGE = 'Draft saved locally in this browser.';
+        const DRAFT_RESTORED_MESSAGE = 'Restored a local draft for this prompt.';
+        const DRAFT_AUTOSAVE_DELAY_MS = 300;
 
         // Initialize
         document.addEventListener('DOMContentLoaded', async () => {
@@ -781,6 +794,8 @@
                     submitAnswer();
                 }
             });
+
+            document.getElementById('answer-input').addEventListener('input', queueCurrentDraftSave);
             
             // Add Escape key to skip (only when answer textarea is focused)
             document.getElementById('answer-input').addEventListener('keydown', (e) => {
@@ -1021,6 +1036,14 @@
             localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
         }
 
+        function getOrCreateCategoryStorage(data, username, category = null) {
+            // Mutates the provided storage object so callers can save it once.
+            if (!data[username]) data[username] = {};
+            if (!category) return data[username];
+            if (!data[username][category]) data[username][category] = {};
+            return data[username][category];
+        }
+
         function getUserAnswers() {
             const data = getStorageData();
             return data[currentUser] || {};
@@ -1028,16 +1051,100 @@
 
         function saveAnswer(category, qid, question, answer) {
             const data = getStorageData();
-            if (!data[currentUser]) data[currentUser] = {};
-            if (!data[currentUser][category]) data[currentUser][category] = {};
+            const categoryAnswers = getOrCreateCategoryStorage(data, currentUser, category);
             
-            data[currentUser][category][qid] = {
+            categoryAnswers[qid] = {
                 question: question,
                 answer: answer,
                 timestamp: new Date().toISOString()
             };
             
             saveStorageData(data);
+        }
+
+        function getDraftData() {
+            try {
+                const data = localStorage.getItem(DRAFT_KEY);
+                return data ? JSON.parse(data) : {};
+            } catch (error) {
+                console.warn('Could not read Preserver draft data from localStorage:', error);
+                return {};
+            }
+        }
+
+        function saveDraftData(data) {
+            localStorage.setItem(DRAFT_KEY, JSON.stringify(data));
+        }
+
+        function updateDraftStatus(message = '') {
+            const status = document.getElementById('draft-status');
+            if (status) status.textContent = message;
+        }
+
+        function queueCurrentDraftSave() {
+            if (draftSaveTimeout) clearTimeout(draftSaveTimeout);
+            draftSaveTimeout = setTimeout(() => {
+                draftSaveTimeout = null;
+                saveCurrentDraft();
+            }, DRAFT_AUTOSAVE_DELAY_MS);
+        }
+
+        function flushCurrentDraft() {
+            if (draftSaveTimeout) {
+                clearTimeout(draftSaveTimeout);
+                draftSaveTimeout = null;
+            }
+            saveCurrentDraft();
+        }
+
+        function saveCurrentDraft() {
+            if (!currentUser || !currentCategory || !currentQid) return;
+
+            const answerInput = document.getElementById('answer-input');
+            if (!answerInput) return;
+            const data = getDraftData();
+            const categoryDrafts = getOrCreateCategoryStorage(data, currentUser, currentCategory);
+
+            const draft = answerInput.value;
+            const hasDraftContent = Boolean(draft.trim());
+            if (hasDraftContent) {
+                // Keep deliberate leading/trailing spaces while treating whitespace-only drafts as empty.
+                categoryDrafts[currentQid] = draft;
+                updateDraftStatus(DRAFT_SAVED_MESSAGE);
+            } else {
+                if (categoryDrafts[currentQid]) {
+                    delete categoryDrafts[currentQid];
+                }
+                updateDraftStatus('');
+            }
+
+            saveDraftData(data);
+        }
+
+        function restoreCurrentDraft() {
+            if (!currentUser || !currentCategory || !currentQid) return;
+
+            const data = getDraftData();
+            const draft = data[currentUser]?.[currentCategory]?.[currentQid] || '';
+            const answerInput = document.getElementById('answer-input');
+            if (!answerInput) return;
+            answerInput.value = draft;
+            updateDraftStatus(draft ? DRAFT_RESTORED_MESSAGE : '');
+        }
+
+        function clearCurrentDraft() {
+            if (!currentUser || !currentCategory || !currentQid) return;
+            if (draftSaveTimeout) {
+                clearTimeout(draftSaveTimeout);
+                draftSaveTimeout = null;
+            }
+
+            const data = getDraftData();
+            if (data[currentUser]?.[currentCategory]?.[currentQid]) {
+                delete data[currentUser][currentCategory][currentQid];
+                saveDraftData(data);
+            }
+            updateDraftStatus('');
         }
 
         function startSession() {
@@ -1182,7 +1289,7 @@
                 document.getElementById('question-category').textContent = 
                     `📂 ${formatCategoryName(selected.category)}`;
                 document.getElementById('question-text').textContent = selected.question;
-                document.getElementById('answer-input').value = '';
+                restoreCurrentDraft();
                 document.getElementById('question-card').classList.remove('hidden');
                 document.getElementById('answer-section').classList.remove('hidden');
                 document.getElementById('complete-card').classList.add('hidden');
@@ -1196,6 +1303,7 @@
             document.getElementById('question-card').classList.add('hidden');
             document.getElementById('answer-section').classList.add('hidden');
             document.getElementById('complete-card').classList.remove('hidden');
+            updateDraftStatus('');
         }
 
         function submitAnswer() {
@@ -1210,6 +1318,7 @@
             }
 
             saveAnswer(currentCategory, currentQid, currentQuestion, answer);
+            clearCurrentDraft();
             showNotification('Answer saved!', 'success');
             updateProgress();
             loadNextQuestion();
@@ -1217,6 +1326,7 @@
 
         function skipQuestion() {
             if (!currentQuestion) return;
+            flushCurrentDraft();
 
             const answers = getUserAnswers();
             const filter = document.getElementById('category-filter').value;
@@ -1256,7 +1366,7 @@
                 document.getElementById('question-category').textContent = 
                     `📂 ${formatCategoryName(selected.category)}`;
                 document.getElementById('question-text').textContent = selected.question;
-                document.getElementById('answer-input').value = '';
+                restoreCurrentDraft();
                 return;
             }
 
@@ -1264,6 +1374,7 @@
         }
 
         function filterCategory() {
+            flushCurrentDraft();
             loadNextQuestion();
         }
 

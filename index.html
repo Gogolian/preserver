@@ -194,6 +194,7 @@
             resize: vertical;
         }
 
+        .answer-tips,
         .draft-status {
             font-size: 12px;
             color: var(--text-muted);
@@ -687,7 +688,7 @@
 
                 <div class="card" id="answer-section">
                     <textarea id="answer-input" placeholder="Share your thoughts..."></textarea>
-                    <p class="draft-status">
+                    <p class="answer-tips">
                         💡 Tip: Press Ctrl+Enter (⌘+Enter on Mac) to save • Press Esc to skip
                     </p>
                     <p class="draft-status" id="draft-status" aria-live="polite"></p>
@@ -768,6 +769,8 @@
         const STORAGE_KEY = 'preserver_data';
         const USER_KEY = 'preserver_user';
         const DRAFT_KEY = 'preserver_drafts';
+        const DRAFT_SAVED_MESSAGE = 'Draft saved locally in this browser.';
+        const DRAFT_RESTORED_MESSAGE = 'Restored a local draft for this prompt.';
 
         // Initialize
         document.addEventListener('DOMContentLoaded', async () => {
@@ -1079,7 +1082,7 @@
             const draft = answerInput.value;
             if (draft.trim()) {
                 data[currentUser][currentCategory][currentQid] = draft;
-                updateDraftStatus('Draft saved locally in this browser.');
+                updateDraftStatus(DRAFT_SAVED_MESSAGE);
             } else if (data[currentUser][currentCategory][currentQid]) {
                 delete data[currentUser][currentCategory][currentQid];
                 updateDraftStatus('');
@@ -1094,7 +1097,7 @@
             const data = getDraftData();
             const draft = data[currentUser]?.[currentCategory]?.[currentQid] || '';
             document.getElementById('answer-input').value = draft;
-            updateDraftStatus(draft ? 'Restored a local draft for this prompt.' : '');
+            updateDraftStatus(draft ? DRAFT_RESTORED_MESSAGE : '');
         }
 
         function clearCurrentDraft() {

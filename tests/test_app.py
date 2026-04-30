@@ -238,8 +238,12 @@ class TestAnswerSaveAndLoad:
             preserver = PreserverApp()
             answer_path = preserver._get_answer_path("../evil", "../category", "../q1")
             base_path = Path(temp_answers_dir).resolve()
+            try:
+                common_path = os.path.commonpath([str(base_path), str(answer_path.resolve())])
+            except ValueError as exc:
+                pytest.fail(f"Answer path should stay on the same filesystem as base path: {exc}")
 
-            assert os.path.commonpath([str(base_path), str(answer_path.resolve())]) == str(base_path)
+            assert common_path == str(base_path)
             assert ".." not in answer_path.parts
         finally:
             app_module.ANSWERS_DIR_TEMPLATE = original_template

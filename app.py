@@ -12,6 +12,7 @@ import gradio as gr
 import json
 import datetime
 import random
+import re
 from pathlib import Path
 from typing import Optional, Dict, List, Tuple
 from dataclasses import dataclass, asdict
@@ -77,8 +78,7 @@ def _safe_path_segment(value: str) -> str:
         char if char.isalnum() or char in {" ", "_", "-"} else "_"
         for char in str(value)
     ).strip()
-    while "__" in segment:
-        segment = segment.replace("__", "_")
+    segment = re.sub(r"_+", "_", segment)
     segment = segment.strip("_")
     return segment or "_"
 

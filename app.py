@@ -79,6 +79,7 @@ def _safe_path_segment(value: str) -> str:
     ).strip()
     while "__" in segment:
         segment = segment.replace("__", "_")
+    segment = segment.strip("_")
     return segment or "_"
 
 

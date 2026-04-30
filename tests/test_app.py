@@ -255,8 +255,8 @@ class TestAnswerSaveAndLoad:
         assert _safe_path_segment("a/b\\c") == "a_b_c"
         assert _safe_path_segment("a__b___c") == "a_b_c"
         assert _safe_path_segment("bad\x00name") == "bad_name"
-        assert _safe_path_segment("bad\x01name\x7f") == "bad_name_"
-        assert _safe_path_segment("  .safe name-.  ") == "_safe name-_"
+        assert _safe_path_segment("bad\x01name\x7f") == "bad_name"
+        assert _safe_path_segment("  .safe name-.  ") == "safe name-"
 
 
 class TestExport:

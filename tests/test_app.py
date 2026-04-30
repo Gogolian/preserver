@@ -13,7 +13,7 @@ import os
 # Add parent directory to path for imports
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from app import PreserverApp, Answer, QUESTIONS_DIR
+from app import PreserverApp, Answer, QUESTIONS_DIR, _safe_path_segment
 
 
 class TestAnswer:
@@ -228,6 +228,40 @@ class TestAnswerSaveAndLoad:
         finally:
             app_module.ANSWERS_DIR_TEMPLATE = original_template
 
+    def test_answer_path_sanitizes_user_controlled_segments(self, temp_answers_dir):
+        """Test answer paths cannot escape the answers directory."""
+        import app as app_module
+        original_template = app_module.ANSWERS_DIR_TEMPLATE
+        app_module.ANSWERS_DIR_TEMPLATE = Path(temp_answers_dir) / "data-{}"
+
+        try:
+            preserver = PreserverApp()
+            answer_path = preserver._get_answer_path("../evil", "../category", "../q1")
+            base_path = Path(temp_answers_dir).resolve()
+            try:
+                common_path = os.path.commonpath([str(base_path), str(answer_path.resolve())])
+            except ValueError as exc:
+                pytest.fail(f"Answer path should stay on the same filesystem as base path: {exc}")
+
+            assert common_path == str(base_path)
+            assert ".." not in answer_path.parts
+        finally:
+            app_module.ANSWERS_DIR_TEMPLATE = original_template
+
+    def test_safe_path_segment_edge_cases(self):
+        """Test path segment sanitization covers separators and empty values."""
+        assert _safe_path_segment("user123") == "user123"
+        assert _safe_path_segment("daily_thoughts") == "daily_thoughts"
+        assert _safe_path_segment("q42") == "q42"
+        assert _safe_path_segment("..") == "_"
+        assert _safe_path_segment(".") == "_"
+        assert _safe_path_segment("") == "_"
+        assert _safe_path_segment("a/b\\c") == "a_b_c"
+        assert _safe_path_segment("a__b___c") == "a_b_c"
+        assert _safe_path_segment("bad\x00name") == "bad_name"
+        assert _safe_path_segment("bad\x01name\x7f") == "bad_name"
+        assert _safe_path_segment("  .safe name-.  ") == "safe name-"
+
 
 class TestExport:
     """Tests for export functionality."""
@@ -424,5 +458,3 @@ class TestRandomness:
 
 if __name__ == "__main__":
     pytest.main([__file__, "-v"])
-
-
